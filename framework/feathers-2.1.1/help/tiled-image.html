@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers TiledImage display object - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-tiledimage-display-object">How to use the Feathers <code>TiledImage</code> display object</h1>
+<p>The <a href="../api-reference/feathers/display/TiledImage.html"><code>TiledImage</code></a> class repeats a texture in a given region, horizontally and vertically. If the dimensions of the tiled image aren't a perfect multiple of the dimensions of the texture, the edges will be clipped.</p>
+<p>A tiled image may use any Starling texture, including sub-textures from <a href="http://wiki.starling-framework.org/manual/textures_and_images#texture_atlases">texture atlases</a>.</p>
+<p><img src="images/tiled.png" /></p>
+<h2 id="code">Code</h2>
+<p>First, we need a texture. We might create one from bitmap data:</p>
+<pre class="code"><code>var texture:Texture = Texture.fromBitmapData( bitmapData );</code></pre>
+<p>Or we might create one from a texture atlas:</p>
+<pre class="code"><code>var texture:Texture = atlas.getTexture( &quot;my-texture&quot; );</code></pre>
+<pre class="code"><code>var image:TiledImage = new TiledImage( texture );
+image.width = 300;
+image.height = 200;
+this.addChild( image );</code></pre>
+<p>If you want to scale the texture up or down before tiling it, a second parameter is available in the constructor:</p>
+<pre class="code"><code>var image:TiledImage = new TiledImage( texture, 0.5 );</code></pre>
+<p>This option is useful when scaling for different screen resolutions or densities.</p>
+<h2 id="tips-and-tricks">Tips and Tricks</h2>
+<p>Tiling images on the GPU involve some gotchas. If your images aren't drawn to whole pixels or they are scaled, the textures may bleed a bit and cause unsightly lines or empty gaps between images. During animations, flickering may happen where textures meet as these gaps quickly appear and disappear. It can help to always ensure that your display objects aren't placed on fractional pixels, but that can be an exercise in frustration, especially on a deep display list.</p>
+<p>The popular <a href="http://texturepacker.com/">Texture Packer</a> software, used to create texture atlases, offers a useful feature named &quot;Extrude&quot;. When you enable this feature, the pixels around the edges of your sub-textures will be duplicated, but it won't change the size of your sub-textures. The duplicated pixels appear just outside the sub-texture's bounds. When texture bleeding happens, the same color that appears on the edge of the sub-texture will bleed into the bounds instead of a transparent pixel or another color.</p>
+<p>When tiling images, extruding is always recommended.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/display/TiledImage.html"><code>feathers.display.TiledImage</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

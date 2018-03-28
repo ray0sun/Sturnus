@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>When I try to change a Feathers component's skins, why do I always see the default skins? - Feathers FAQ - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="../css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="../index.html">Feathers 2.1.1 Help</a> / <a href="index.html">Feathers FAQ</a></nav>
+</div>
+</header>
+<article>
+<h1 id="when-i-try-to-change-a-feathers-components-skins-why-do-i-always-see-the-default-skins">When I try to change a Feathers component's skins, why do I always see the default skins?</h1>
+<p>If you're using a <a href="../themes.html">theme</a>, it will listen for when new components are added to the display list. That's when the theme sets skins and other styling properties on the component. If you set properties on your components before you add them to the display list, the theme may change the properties that you just set.</p>
+<p>In general, it's best to keep all of your skinning code inside the theme. If you want to style a component differently than the default provided by an existing theme, you should <a href="../extending-themes.html">extend the theme</a>. Once your new styles are part of the theme (don't worry, they're easy to add), you can reuse them anywhere in your app. No duplicated code, and you have a clean separation between the theme and your app's business logic.</p>
+</article>
+<footer>
+<div class="content">
+<nav><a href="../index.html">Feathers 2.1.1 Help</a> / <a href="index.html">Feathers FAQ</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

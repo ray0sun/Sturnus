@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>Introduction to Feathers themes - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="introduction-to-feathers-themes">Introduction to Feathers themes</h1>
+<p>A Feathers <em>theme</em> is class that packages up the skinning code for multiple UI components in one location. Skins are registered globally, and when any Feathers component is instantiated, it will be automatically skinned. It's easy to drop a theme into your new Feathers app, and have it skin every component in the same style. If you need a custom skin for any individual component (even one that looks wildly different than the default), it's easy to exclude the component from the theme. If you like the default styles, but you want to make some tweaks, Feathers provides mechanisms for extending a theme.</p>
+<p>Themes are not required, of course. You can skin any Feathers component manually, if you prefer (we'll learn how to exclude a component from the theme later). However, the main advantage of a theme is to keep styling code from being mixed up with things like the play mechanics of a game or the business logic of an productivity app. Themes help you to reduce clutter by organizing your code. Plus, pre-made themes are a great way to get started if you want to focus on your app's functionality before you start worrying about skinning. You may even be able to swap themes with little impact on the rest of your project, if you decide to stick with pre-made themes for an app that doesn't need its own custom design.</p>
+<p>A number of sample themes are available in the <code>themes</code> directory included with Feathers. Just grab the compiled SWC file for the theme you'd like to use, and drop it into your project. Instantiate the theme when your app first starts up by adding only a single line of code. Any component that you instantiate will be skinned automatically. We'll see an example in a moment.</p>
+<h2 id="initializing-a-theme">Initializing a Theme</h2>
+<p>In the following example, we'll use the example <code>MetalWorksMobileTheme</code> included in the <em>themes</em> directory that comes with the Feathers library.</p>
+<p>In your project's root Starling display object, add an <code>Event.ADDED_TO_STAGE</code> listener in the constructor.</p>
+<pre class="code"><code>public function Main()
+{
+    this.addEventListener( Event.ADDED_TO_STAGE, addedToStageHandler );
+}
+ 
+private function addedToStageHandler( event:Event ):void
+{
+    // more here later
+}</code></pre>
+<p>Next, inside <code>addedToStageHandler()</code>, the first thing we should do is instantiate the theme. This needs to be done before we add any Feathers UI components to our app:</p>
+<pre class="code"><code>new MetalWorksMobileTheme();</code></pre>
+<p>To test it out, let's create a button on the next line, after we've created the theme:</p>
+<pre class="code"><code>var button:Button = new Button();
+button.label = &quot;Click Me&quot;;
+button.x = 200;
+button.y = 150;
+this.addChild( button );</code></pre>
+<p>That's it! When we pass the button to <code>addChild()</code>, the theme will detect the button and give it some skins. Anything else that we add to the display list after this will be skinned too.</p>
+<p>Most of the samples and apps included with the Feathers library use themes. Take a look in the <em>examples</em> directory to see the source code for these projects to see how they initialize their themes in the context of a larger app. Check out the <em>themes</em> directory for several example themes.</p>
+<h2 id="when-does-a-theme-apply-skins-to-a-component">When does a theme apply skins to a component?</h2>
+<p>A theme applies skins after a component initializes. This happens automatically when a component is added to the display list and it gains access to the stage. In other words, a component won't be skinned immediately when its constructor is called. The skinning happens when you pass a component to the <code>addChild()</code> function and the component gains access to the stage.</p>
+<p>Any skin-related properties that you set before adding a component to the display list may be replaced by the theme. You should <a href="extending-themes.html">extend the theme</a> to customize individual component skins.</p>
+<h2 id="customizing-a-specific-component-instance">Customizing a specific component instance</h2>
+<p>If you've chosen to use a theme, it's best to stay within the theme architecture when you want to customize a specific component instance's skins. See the <a href="extending-themes.html">Extending a Feathers Theme</a> documentation for way to customize an individual component instance to look different than the default. It's very easy, and it helps you keep all of your skinning code in one place.</p>
+<p>It's not recommended when using themes, but you can also change skin and style properties directly on a particular component when you create it. You simply need to do this <em>after</em> it has been added to the stage. As noted above, any style properties that you set before adding the component to the stage may be replaced by the theme. For best results, you should always stay within the theming architecture when you choose to use a theme. This means extending the theme when you want to make changes. Otherwise, you may find yourself fighting the theme code and getting frustrated.</p>
+<p>Theming is a powerful, but (ultimately) optional, part of Feathers. You can always skin your components without themes. Many Feathers developers do, and you're encouraged to use Feathers in whatever way best fits your preferred workflow.</p>
+<h2 id="alternate-style-names">Alternate Style Names</h2>
+<p>Some components provide a set of alternate skin &quot;style names&quot; that may be added to a component instance's <code>styleNameList</code> to tell the theme that a particular instance should be skinned slightly differently than the default. These alternate skins provide a way to differentiate components visually without changing their functionality. For instance, you might want certain buttons to be a little more prominent than others, so you might give them a special &quot;call-to-action&quot; style name that a theme might use to provide a more colorful skin.</p>
+<p>Let's look at another example. The <code>GroupedList</code> component has a regular skin that looks a lot like the <code>List</code>, but with headers and footers. It tends to be best for groups that are strongly related, such as an alphabetized list of items. The <code>GroupedList</code> control also has an alternate &quot;inset&quot; style where the groups have rounded edges on the first and last item, and there is some padding between the edges of the component and the item renderers. This style is better for groups that are more weakly related. iOS uses a similar style very effectively in settings screens where it makes sense to differentiate each group a bit more.</p>
+<aside class="info">
+To see the difference between these two styles, you can view the <code>GroupedList</code> in the <a href="http://feathersui.com/examples/components-explorer/">Component Explorer</a>. In the settings screen for the <code>GroupedList</code>, change the &quot;Group Style&quot; to &quot;inset&quot;.
+</aside>
+<p>Alternate style names get exposed as public static constants on any class that provides them. For instance, <code>GroupedList</code> defines <code>ALTERNATE_STYLE_NAME_INSET_GROUPED_LIST</code>. The inset style can be used by adding the constant to a grouped list's <code>styleNameList</code>, like this:</p>
+<pre class="code"><code>var list:GroupedList = new GroupedList();
+list.styleNameList.add( GroupedList.ALTERNATE_STYLE_NAME_INSET_GROUPED_LIST );
+this.addChild( list );</code></pre>
+<p>If you are trying out a theme that doesn't provide a specific alternate skin for a component, your component won't be left unskinned. Instead, the theme will automatically fall back to using the default skin for that component. This requires no special code from the theme author. It's a core part of the theming system. It's not ideal when you prefer a specific style, but if you're switching between multiple themes, it will always leave your app fully functional. If you're designing your own themes, obviously you can ensure that all required alternate style names are supported.</p>
+<p>Style names only work when added to a component <em>before</em> it the component initializes. You <strong>cannot</strong> change style names later to give a component a different skin.</p>
+<h2 id="standard-icons">Standard Icons</h2>
+<p>Feathers provides a class <code>StandardIcons</code> that themes can use to provide textures for commonly-used icons. For example, <code>StandardIcons.listDrillDownAccessoryTexture</code> typically provides an arrow pointing to the right to indicate that you can select a list item to drill down into more detailed data. This icon can be used with a list item's <code>accessoryTextureField</code> or <code>accessoryTextureFunction</code>.</p>
+<p>Not all themes will provide these icons, but theme authors are encouraged to include them.</p>
+<h2 id="file-size-warning">File Size Warning</h2>
+<p>The example themes generally skin every available component in Feathers. This means that all Feathers components will be compiled into your application, including the ones that you don't actually use. To save on file size, you should consider removing references to all components that you are not using from your app's local copy of the theme.</p>
+<p>Obviously, if you create a <a href="custom-themes.html">custom theme</a> for your application or game, you will probably skin only the components that you plan to use in your UI. In this case, the file size will not be affected by extra, unused components.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="theme-assets.html">Managing assets in Feathers themes</a></p></li>
+<li><p><a href="extending-themes.html">Extending Feathers example themes</a></p></li>
+<li><p><a href="custom-themes.html">Creating custom Feathers themes</a></p></li>
+<li><p><a href="migrating-themes.html">Migrating legacy themes to Feathers 2.0</a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

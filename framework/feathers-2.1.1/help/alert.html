@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers Alert component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-alert-component">How to use the Feathers <code>Alert</code> component</h1>
+<p>The <a href="../api-reference/feathers/controls/Alert.html"><code>Alert</code></a> class renders a window as a <a href="pop-ups.html">pop-up</a> over all other content. Typically, an alert displays a header with a title, followed by some multiline, word-wrapped text, and a set of buttons to select different actions.</p>
+<h2 id="the-basics">The Basics</h2>
+<p>We create an <code>Alert</code> a bit differently than other components. Rather than calling a constructor, we call the static function <a href="../api-reference/feathers/controls/Alert.html#show()"><code>Alert.show()</code></a>. Let's see how this works by displaying a simple message in an <code>Alert</code> when we touch a button. First, let's create the button:</p>
+<pre class="code"><code>var button:Button = new Button();
+button.label = &quot;Click Me&quot;;
+button.addEventListener( Event.TRIGGERED, button_triggeredHandler );
+this.addChild( button );</code></pre>
+<p>Then, in the listener for the button's <code>Event.TRIGGERED</code> event, we create the alert:</p>
+<pre class="code"><code>function button_triggeredHandler( event:Event ):void
+{
+    var button:Button = Button( event.currentTarget );
+    var alert:Alert = Alert.show( &quot;I have something important to say&quot;, &quot;Warning&quot;, new ListCollection(
+    [
+        { label: &quot;OK&quot;, triggered: okButton_triggeredHandler }
+    ]) );
+}</code></pre>
+<p>Three arguments are required. The first is the alert's message. The second argument is the title displayed in the alert's header. Finally, a <a href="../api-reference/feathers/data/ListCollection.html"><code>ListCollection</code></a> of button data must be passed in to display in a <a href="button-group.html"><code>ButtonGroup</code></a>.</p>
+<p>In addition to listening for <a href="../api-reference/feathers/controls/Button.html#event:triggered"><code>Event.TRIGGERED</code></a> to be dispatched by individual buttons, you may also listen for <a href="../api-reference/feathers/controls/Alert.html#event:close"><code>Event.CLOSE</code></a> on the alert:</p>
+<pre class="code"><code>alert.addEventListener( Event.CLOSE, alert_closeHandler );</code></pre>
+<p>The event object's <code>data</code> property will contain the item from the <code>ButtonGroup</code> data provider that is associated with the button that was triggered:</p>
+<pre class="code"><code>function alert_closeHandler( event:Event, data:Object ):void
+{
+    if( data.label == &quot;OK&quot; )
+    {
+        // the OK button was clicked
+    }
+}</code></pre>
+<p>Additional, optional arguments are available for <code>Alert.show()</code>. Let's take a look at those next.</p>
+<h3 id="modality">Modality</h3>
+<p>Following the button group is the <code>isModal</code> argument. This determines whether there is an overlay between the alert and the rest of the display list. When an alert is modal, the overlay blocks touches to everything that appears under the alert. If the alert isn't modal, there will be no overlay to block the touch, and anything below the alert will remain interactive.</p>
+<p>Alerts are displayed using the <a href="pop-ups.html"><code>PopUpManager</code></a>. By default, modal overlays are managed by the <code>PopUpManager</code>, but you can give a custom overlay to all alerts (that will be different from other modal pop-ups) when you set the static property, <a href="../api-reference/feathers/controls/Alert.html#overlayFactory"><code>overlayFactory</code></a>:</p>
+<pre class="code"><code>Alert.overlayFactory = function():DisplayObject
+{
+    return new TiledImage( myTexture );
+};</code></pre>
+<p>When <a href="../api-reference/feathers/core/PopUpManager.html#addPopUp()"><code>PopUpManager.addPopUp()</code></a> is called to show the alert, the custom overlay factory will be passed in as an argument.</p>
+<h3 id="centering">Centering</h3>
+<p>Following the modality is the <code>isCentered</code> argument. This determines if the alert will be globally centered on the Starling stage. If the alert or the stage is resized, the alert will be automatically repositioned to remain centered.</p>
+<h3 id="custom-alert-factory">Custom <code>Alert</code> factory</h3>
+<p>When an alert is created with <code>Alert.show()</code>, the function stored by the <a href="../api-reference/feathers/controls/Alert.html#alertFactory"><code>Alert.alertFactory()</code></a> property is called to instantiate an <code>Alert</code> instance. One of the final arguments of <code>Alert.show()</code> allows you to specify a custom alert factory. This let's you customize an individual alert to be different than other alerts. For instance, let's say that a particular alert should have different background skin than others. We might create an alert factory function like this:</p>
+<pre class="code"><code>function customAlertFactory():Alert
+{
+    var alert:Alert = new Alert();
+    alert.styleNameList.add( &quot;custom-alert&quot; );
+    return alert;
+};
+Alert.show( &quot;I have something important to say&quot;, &quot;Alert Title&quot;, new ListCollection({label: &quot;OK&quot;}), true, true, customAlertFactory );</code></pre>
+<p>If you're working with a <a href="themes.html">theme</a>, you can set a custom styling function for a <code>Alert</code> with the style name <code>&quot;custom-alert&quot;</code> to provide different skins for this alert.</p>
+<h2 id="skinning-an-alert">Skinning an <code>Alert</code></h2>
+<p>The skins for an <code>Alert</code> control are divided into the header, the message text renderer, and the button group. Additionally, an alert may have background skins and various other styles. For full details about what skin and style properties are available, see the <a href="../api-reference/feathers/controls/Alert.html">Alert API reference</a>.</p>
+<h3 id="background-skins-and-basic-styles">Background skins and basic styles</h3>
+<p>We'll start the skinning process by giving our alert appropriate background skins.</p>
+<pre class="code"><code>alert.backgroundSkin = new Scale9Image( enabledTextures );
+alert.backgroundDisabledSkin = new Image( disabledTextures );</code></pre>
+<p>The <a href="../api-reference/feathers/controls/Scroller.html#backgroundSkin"><code>backgroundSkin</code></a> property provides the default background for when the alert is enabled. The <a href="../api-reference/feathers/controls/Scroller.html#disabledBackgroundSkin"><code>backgroundDisabledSkin</code></a> is displayed when the alert is disabled. If the <code>backgroundDisabledSkin</code> isn't provided to a disabled alert, it will fall back to using the <code>backgroundSkin</code> in the disabled state.</p>
+<p>Padding may be added around the edges of the alert. This padding is applied around the edges of the message text renderer, and is generally used to show a bit of the background as a border.</p>
+<pre class="code"><code>alert.paddingTop = 15;
+alert.paddingRight = 20;
+alert.paddingBottom = 15;
+alert.paddingLeft = 20;</code></pre>
+<p>If all four padding values should be the same, you may use the <a href="../api-reference/feathers/controls/Scroller.html#padding"><code>padding</code></a> property to quickly set them all at once:</p>
+<pre class="code"><code>alert.padding = 20;</code></pre>
+<h3 id="targeting-an-alert-in-a-theme">Targeting an <code>Alert</code> in a theme</h3>
+<p>If you are creating a <a href="themes.html">theme</a>, you can specify a function for the default styles like this:</p>
+<pre class="code"><code>getStyleProviderForClass( Alert ).defaultStyleFunction = setAlertStyles;</code></pre>
+<p>If you want to customize a specific alert to look different than the default, you may use a custom style name to call a different function:</p>
+<pre class="code"><code>alert.styleNameList.add( &quot;custom-alert&quot; );</code></pre>
+<p>You can specify the function for the custom style name like this:</p>
+<pre class="code"><code>getStyleProviderForClass( Alert )
+    .setFunctionForStyleName( &quot;custom-alert&quot;, setCustomAlertStyles );</code></pre>
+<p>Trying to change the alert's styles and skins outside of the theme may result in the theme overriding the properties, if you set them before the alert was added to the stage and initialized. Learn to <a href="extending-themes.html">extend an existing theme</a> to add custom skins.</p>
+<p>If you aren't using a theme, then you may set any of the alert's properties directly.</p>
+<h3 id="skinning-the-header">Skinning the header</h3>
+<p>This section only explains how to access the header sub-component. Please read <a href="header.html">How to use the Feathers <code>Header</code> component</a> for full details about the skinning properties that are available on <code>Header</code> components.</p>
+<h4 id="with-a-theme">With a Theme</h4>
+<p>If you're creating a <a href="themes.html">theme</a>, you can target the <a href="../api-reference/feathers/controls/Alert.html#DEFAULT_CHILD_STYLE_NAME_HEADER"><code>Alert.DEFAULT_CHILD_STYLE_NAME_HEADER</code></a> style name.</p>
+<pre class="code"><code>getStyleProviderForClass( Header )
+    .setFunctionForStyleName( Alert.DEFAULT_CHILD_STYLE_NAME_HEADER, setAlertHeaderStyles );</code></pre>
+<p>You can override the default style name to use a different one in your theme, if you prefer:</p>
+<pre class="code"><code>alert.customHeaderStyleName = &quot;custom-header&quot;;</code></pre>
+<p>You can set the styling function for the <a href="../api-reference/feathers/controls/Panel.html#customHeaderStyleName"><code>customHeaderStyleName</code></a> like this:</p>
+<pre class="code"><code>getStyleProviderForClass( Header )
+    .setFunctionForStyleName( &quot;custom-header&quot;, setAlertCustomHeaderStyles );</code></pre>
+<h4 id="without-a-theme">Without a Theme</h4>
+<p>If you are not using a theme, you can use <a href="../api-reference/feathers/controls/Panel.html#headerFactory"><code>headerFactory</code></a> to provide skins for the alert's header:</p>
+<pre class="code"><code>alert.headerFactory = function():Header
+{
+    var header:Header = new Header();
+    //skin the header here
+    header.backgroundSkin = new Scale9Image( headerBackgroundTextures );
+    return header;
+}</code></pre>
+<p>Alternatively, or in addition to the <code>headerFactory</code>, you may use the <a href="../api-reference/feathers/controls/Panel.html#headerProperties"><code>headerProperties</code></a> to pass skins to the header.</p>
+<pre class="code"><code>alert.headerProperties.backgroundSkin = new Scale9Image( headerBackgroundTextures );</code></pre>
+<p>In general, you should only pass skins to the alert's header through <code>headerProperties</code> if you need to change skins after the header is created. Using <code>headerFactory</code> will provide slightly better performance, and your development environment will be able to provide code hinting thanks to stronger typing.</p>
+<h3 id="skinning-the-buttons">Skinning the buttons</h3>
+<p>This section only explains how to access the button group sub-component. Please read <a href="button-group.html">How to use the Feathers <code>ButtonGroup</code> component</a> for full details about the skinning properties that are available on <code>ButtonGroup</code> components.</p>
+<h4 id="with-a-theme-1">With a Theme</h4>
+<p>If you're creating a <a href="themes.html">theme</a>, you can target the <a href="../api-reference/feathers/controls/Alert.html#DEFAULT_CHILD_STYLE_NAME_BUTTON_GROUP"><code>Alert.DEFAULT_CHILD_STYLE_NAME_BUTTON_GROUP</code></a> style name.</p>
+<pre class="code"><code>getStyleProviderForClass( ButtonGroup )
+    .setFunctionForStyleName( Alert.DEFAULT_CHILD_STYLE_NAME_BUTTON_GROUP, setAlertButtonGroupStyles );</code></pre>
+<p>You can override the default style name to use a different one in your theme, if you prefer:</p>
+<pre class="code"><code>alert.customButtonGroupStyleName = &quot;custom-button-group&quot;;</code></pre>
+<p>You can set the styling function for the <a href="../api-reference/feathers/controls/Alert.html#customButtonGroupStyleName"><code>customButtonGroupStyleName</code></a> like this:</p>
+<pre class="code"><code>getStyleProviderForClass( ButtonGroup )
+    .setFunctionForStyleName( &quot;custom-button-group&quot;, setAlertCustomButtonGroupStyles );</code></pre>
+<h4 id="without-a-theme-1">Without a Theme</h4>
+<p>If you are not using a theme, you can use <a href="../api-reference/feathers/controls/Alert.html#buttonGroupFactory"><code>buttonGroupFactory</code></a> to provide skins for the alert's button group:</p>
+<pre class="code"><code>alert.buttonGroupFactory = function():Header
+{
+    var group:ButtonGroup = new ButtonGroup();
+    //skin the button group here
+    group.gap = 20;
+    return group;
+}</code></pre>
+<p>Alternatively, or in addition to the <code>buttonGroupFactory</code>, you may use the <a href="../api-reference/feathers/controls/Alert.html#buttonGroupProperties"><code>buttonGroupProperties</code></a> to pass skins to the button group.</p>
+<pre class="code"><code>alert.buttonGroupProperties.gap = 20;</code></pre>
+<p>In general, you should only pass skins to the alert's button group through <code>buttonGroupProperties</code> if you need to change skins after the button group is created. Using <code>buttonGroupFactory</code> will provide slightly better performance, and your development environment will be able to provide code hinting thanks to stronger typing.</p>
+<h3 id="skinning-the-message-text-renderer">Skinning the message text renderer</h3>
+<p>This section only explains how to access the message text renderer sub-component. Please read <a href="text-renderers.html">Introduction to Feathers Text Renderers</a> for full details about how to style different kinds of Feathers text renderers.</p>
+<h4 id="with-a-theme-2">With a Theme</h4>
+<p>If you're creating a <a href="themes.html">theme</a>, you can target the <a href="../api-reference/feathers/controls/Alert.html#DEFAULT_CHILD_STYLE_NAME"><code>Alert.DEFAULT_CHILD_STYLE_NAME_MESSAGE</code></a> style name. In the following examples, we'll use a <a href="text-renderers.html"><code>BitmapFontTextRenderer</code></a>, but other text renderers may be used instead, if desired.</p>
+<pre class="code"><code>getStyleProviderForClass( BitmapFontTextRenderer )
+    .setFunctionForStyleName( Alert.DEFAULT_CHILD_STYLE_NAME_MESSAGE, setAlertMessageStyles );</code></pre>
+<h4 id="without-a-theme-2">Without a Theme</h4>
+<p>If you are not using a theme, you can use <a href="../api-reference/feathers/controls/Alert.html#messageFactory"><code>messageFactory</code></a> to provide skins for the alert's message:</p>
+<pre class="code"><code>alert.messageFactory = function():ITextRenderer
+{
+    var message:BitmapFontTextRenderer = new BitmapFontTextRenderer();
+    //skin the message here
+    message.textFormat = new BitmapFontTextFormat( bitmapFont );
+    return message;
+}</code></pre>
+<p>Alternatively, or in addition to the <code>messageFactory</code>, you may use the <a href="../api-reference/feathers/controls/Alert.html#messageProperties"><code>messageProperties</code></a> to pass properties to the text renderer.</p>
+<pre class="code"><code>alert.messageProperties.textFormat = new BitmapFontTextFormat( bitmapFont );</code></pre>
+<p>In general, you should only pass skins to the alert's message text renderer through <code>messageProperties</code> if you need to change skins after the message text renderer is created. Using <code>messageFactory</code> will provide slightly better performance, and your development environment will be able to provide code hinting thanks to stronger typing.</p>
+<h3 id="customizing-the-alert-factories">Customizing the <code>Alert</code> factories</h3>
+<p>If you're not using a theme, you can specify a factory to create the alert, including setting skins, in a couple of different ways. The first is to set the <a href="../api-reference/feathers/controls/Alert.html#alertFactory"><code>Alert.alertFactory</code></a> static property to a function that provides skins for the alert. This factory will be called any time that <a href="../api-reference/feathers/controls/Alert.html#show()"><code>Alert.show()</code></a> is used to create an alert.</p>
+<pre class="code"><code>function skinnedAlertFactory():Alert
+{
+    var alert:Alert = new Alert();
+    alert.backgroundSkin = new Scale9Image( myTextures );
+    // etc...
+    return alert;
+};
+Alert.alertFactory = skinnedAlertFactory;</code></pre>
+<p>Another option is to pass an alert factory to <code>Alert.show()</code>. This allows you to create a specific alert differently than the default global <code>Alert.alertFactory</code>.</p>
+<pre class="code"><code>function skinnedAlertFactory():Alert
+{
+    var alert:Alert = new Alert();
+    alert.backgroundSkin = new Scale9Image( myTextures );
+    // etc...
+    return alert;
+};
+Alert.show( message, title, buttons, isModal, isCentered, skinnedAlertFactory );</code></pre>
+<p>You should generally always skin the alerts with a factory or with a theme instead of passing the skins to the <code>Alert</code> instance returned by calling <code>Alert.show()</code>. If you skin an alert after <code>Alert.show()</code> is called, it may not be positioned or sized correctly anymore.</p>
+<h2 id="closing-and-disposal">Closing and disposal</h2>
+<p>The alert will automatically remove itself from the display list and dispose itself when one of its buttons is triggered. To manually close and dispose the alert without triggering a button, you may simply remove the alert from its parent:</p>
+<pre class="code"><code>alert.removeFromParent( true );</code></pre>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/controls/Alert.html"><code>feathers.controls.Alert</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

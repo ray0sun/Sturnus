@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers PageIndicator component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-pageindicator-component">How to use the Feathers <code>PageIndicator</code> component</h1>
+<p>The <a href="../api-reference/feathers/controls/PageIndicator.html"><code>PageIndicator</code></a> component displays a series of symbols, with one being highlighted, to show the user which index among a limited set is selected. Typically, it is paired with a <a href="list.html"><code>List</code></a> or a similar component that supports scrolling and paging. The user can tap the <code>PageIndicator</code> to either side of the selected symbol to navigate forward or backward.</p>
+<h2 id="the-basics">The Basics</h2>
+<p>First, let's create a <code>PageIndicator</code> control, give it a number of pages, and add it to the display list.</p>
+<pre class="code"><code>var pages:PageIndicator = new PageIndicator();
+pages.pageCount = 5;
+this.addChild( pages );</code></pre>
+<p>The number of symbols that a page indicator displays is controlled by the <a href="../api-reference/feathers/controls/PageIndicator.html#pageCount"><code>pageCount</code></a> property. You'll see that the first symbol is automatically selected. If you tap the page indicator on the right side, it will advance to the next index.</p>
+<p>If we want to react to the selected index changing, we can add a listener for <a href="../api-reference/feathers/controls/PageIndicator.html#event:change"><code>Event.CHANGE</code></a>:</p>
+<pre class="code"><code>pages.addEventListener( Event.CHANGE, pageIndicator_changeHandler );</code></pre>
+<p>The listener might look something like this:</p>
+<pre class="code"><code>function pageIndicator_changeHandler( event:Event ):void
+{
+    var pages:PageIndicator = PageIndicator( event.currentTarget );
+    trace( &quot;selected index:&quot;, pages.selectedIndex );
+}</code></pre>
+<h2 id="skinning-a-pageindicator">Skinning a <code>PageIndicator</code></h2>
+<p>You can customize the layout of a page indicator, and you can customize the appearance of a its &quot;normal&quot; and &quot;selected&quot; symbols. For full details about what skin and style properties are available, see the <a href="../api-reference/feathers/controls/PageIndicator.html"><code>PageIndicator</code> API reference</a>. We'll look at a few of the most common properties below.</p>
+<h3 id="layout">Layout</h3>
+<p>You may set the <a href="../api-reference/feathers/controls/PageIndicator.html#direction"><code>direction</code></a> of a page indicator to <a href="../api-reference/feathers/controls/PageIndicator.html#DIRECTION_HORIZONTAL"><code>PageIndicator.DIRECTION_HORIZONTAL</code></a> or <a href="../api-reference/feathers/controls/PageIndicator.html#DIRECTION_VERTICAL"><code>PageIndicator.DIRECTION_VERTICAL</code></a>. The default layout direction is horizontal. Below, we change it to vertical:</p>
+<pre class="code"><code>pages.direction = PageIndicator.DIRECTION_VERTICAL;</code></pre>
+<p>We can set other layout properies, such as the <a href="../api-reference/feathers/controls/PageIndicator.html#gap"><code>gap</code></a> between symbols, the padding around the edges, and the alignment, both <a href="../api-reference/feathers/controls/PageIndicator.html#horizontalAlign"><code>horizontalAlign</code></a> and <a href="../api-reference/feathers/controls/PageIndicator.html#verticalAlign"><code>verticalAlign</code></a>:</p>
+<pre class="code"><code>pages.gap = 4;
+pages.paddingTop = 4;
+pages.paddingRight = 4;
+pages.paddingBottom = 4;
+pages.paddingLeft = 10;
+pages.horizontalAlign = PageIndicator.HORIZONTAL_ALIGN_CENTER;
+pages.verticalAlign = PageIndicator.VERTICAL_ALIGN_MIDDLE;</code></pre>
+<h3 id="symbol-skins">Symbol Skins</h3>
+<p>The symbols may be created using the <a href="../api-reference/feathers/controls/PageIndicator.html#normalSymbolFactory"><code>normalSymbolFactory</code></a> and <a href="../api-reference/feathers/controls/PageIndicator.html#selectedSymbolFactory"><code>selectedSymbolFactory</code></a> for normal and selected symbols, respectively. These functions are expected to return any Starling display objects. Below, we return Starling Images with different textures for normal and selected states:</p>
+<pre class="code"><code>pages.normalSymbolFactory = function():DisplayObject
+{
+    return new Image( normalSymbolTexture );
+};
+ 
+pages.selectedSymbolFactory = function():DisplayObject
+{
+    return new Image( selectedSymbolTexture );
+};</code></pre>
+<p>The page indicator will automatically reuse symbols if the page count or the selected index changes.</p>
+<h3 id="targeting-a-pageindicator-in-a-theme">Targeting a <code>PageIndicator</code> in a theme</h3>
+<p>If you are creating a <a href="themes.html">theme</a>, you can specify a function for the default styles like this:</p>
+<pre class="code"><code>getStyleProviderForClass( PageIndicator ).defaultStyleFunction = setPageIndicatorStyles;</code></pre>
+<p>If you want to customize the style of a specific page indicator to look different than the default, you may use a custom style name to call a different function:</p>
+<pre class="code"><code>pages.styleNameList.add( &quot;custom-page-indicator&quot; );</code></pre>
+<p>You can specify the function for the custom style name like this:</p>
+<pre class="code"><code>getStyleProviderForClass( PageIndicator )
+    .setFunctionForStyleName( &quot;custom-page-indicator&quot;, setCustomPageIndicatorStyles );</code></pre>
+<p>Trying to change the page indicator's styles and skins outside of the theme may result in the theme overriding the properties, if you set them before the page indicator was added to the stage and initialized. Learn to <a href="extending-themes.html">extend an existing theme</a> to add custom skins.</p>
+<p>If you aren't using a theme, then you may set any of the page indicator's properties directly.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/controls/PageIndicator.html"><code>feathers.controls.PageIndicator</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

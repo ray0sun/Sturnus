@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>Anatomy of a Feathers user interface component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="anatomy-of-a-feathers-user-interface-component">Anatomy of a Feathers user interface component</h1>
+<p>The following properties and methods are core parts of <code>FeathersControl</code> and all component developers should be intimately familiar with them. Please be sure to read <a href="component-lifecycle.html">Feathers Component Lifecycle</a> for additional, related information.</p>
+<h2 id="the-constructor">The Constructor</h2>
+<p>Any code appearing within the <strong>constructor</strong> should be kept to a minimum. In general, most initialization code should appear within <code>initialize()</code> instead.</p>
+<h2 id="initialize">initialize()</h2>
+<p>The <code>initialize()</code> method is called the first time that the component is added to the display list. It will only be called once in the component's lifetime. You may override this method to create children and handle other tasks that should be run when the component is first initialized.</p>
+<h2 id="invalidate">invalidate()</h2>
+<p>The <code>invalidate()</code> method should be called to tell the component that a property has changed and that it needs to redraw itself. Typically, this method is called within a setter function. It takes one or more flags as arguments to inform the component what has changed. The component may use these flags to focus on redrawing only a subset of itself if some parts are able to remain the same.</p>
+<h2 id="draw">draw()</h2>
+<p>The <code>draw()</code> method is called immediately before the component is rendered by Starling. You should override it to commit property changes, calculate an ideal size, and layout children.</p>
+<p>Please read <a href="component-validation.html">Component Validation with draw()</a> for more detailed information about the <code>draw()</code> method.</p>
+<h2 id="isinvalid">isInvalid()</h2>
+<p>The <code>isInvalid()</code> method is used to determine if a specific flag has been set with <code>invalidate()</code>. Call this in <code>draw()</code> to determine which parts of the component need to be redrawn. If you call it with no arguments, the result will be <code>true</code> if <code>invalidate()</code> has been called regardless of which flags have been passed in.</p>
+<h2 id="setsizeinternal">setSizeInternal()</h2>
+<p>The <code>setSizeInternal()</code> method is called to specify ideal dimensions. It chooses between explicit and ideal dimensions to calculate the final &quot;actual&quot; dimensions used for layout.</p>
+<p>The final argument determines if the component should invalidate after adjusting the dimensions. If you call it during validation (during <code>draw()</code>, basically), then you should probably pass <code>false</code>. Otherwise, the component will end up redrawing itself every render cycle, which you probably don't want.</p>
+<p>See below for more detailed information on component dimensions.</p>
+<h2 id="isquickhitareaenabled">isQuickHitAreaEnabled</h2>
+<p>The <code>isQuickHitAreaEnabled</code> property is similar to <code>mouseChildren</code> from the classic display list. However, it takes things a step further and limits the component's hit area to a simple rectangle, which can greatly improve performance of touch hit tests. The rectangular hit area is automatically calculated based on the component's &quot;actual&quot; width and height dimensions (see below). This is most useful in buttons, but any component where the children don't need to receive touch events can benefit from it.</p>
+<h2 id="stylename-and-stylenamelist">styleName and styleNameList</h2>
+<p>A component's <code>styleNameList</code> is used by <a href="themes.html">Feathers themes</a> to provide separate skins to different types of the same component. It is most often used by components that have child components that need to be skinned, such as a <code>Slider</code> has track and a thumb sub-components that are buttons.</p>
+<p>For more information about component style names, please read <a href="themes.html">Introduction to Feathers Themes</a>.</p>
+<h2 id="width-and-height">width and height</h2>
+<p><code>FeathersControl</code> provides a number of useful width and height values. Understanding the differences among them is important for maximizing performance and getting the most out Feathers' capabilities.</p>
+<p>The <code>width</code> and <code>height</code> getters and setters expose the component's dimensions externally. The values returned by the getters are determined based on a number of factors. They may be explicit dimensions passed to the setters or they may be ideal dimensions calculated automatically because no explicit dimensions were specified.</p>
+<p>The <code>explicitWidth</code> and <code>explicitHeight</code> variables are changed if the <code>width</code> and <code>height</code> setters are called with numeric values. In the following example, a <code>Button</code> control is created, and its <code>width</code> property is set to <code>150</code> pixels. Internally, the button will store this value in the <code>explicitWidth</code> variable.</p>
+<pre class="code"><code>var button:Button = new Button();
+button.width = 150;</code></pre>
+<p>The <code>actualWidth</code> and <code>actualHeight</code> variables are the values returned by the <code>width</code> and <code>height</code> getters. These values should also be used when drawing the component. The &quot;actual&quot; dimensions typically default to the values of <code>explicitWidth</code> and <code>explicitHeight</code>, but if explicit dimensions are not specified, the component may try to calculate ideal dimensions. These could be hard-coded pixel values or they could be determined based on the dimensions of skins or other children (such as sub-components). How the ideal dimensions are calculated is often different from component to component.</p>
+<p>A custom component should pass its ideal calculated dimensions to the <code>setSizeInternal()</code> method before the layout phase. This method will determine if the dimensions were already set explicitly. If so, the ideal values will be ignored, and the <code>actualWidth</code> and <code>actualHeight</code> variables will be set to the explicit dimensions. If not, they will be set to the ideal dimensions instead.</p>
+<p>If explicit dimensions have been set, and you want to use the component's ideal dimensions instead, pass <code>NaN</code> to the <code>width</code> and <code>height</code> setters.</p>
+<p>The <code>minWidth</code> and <code>minHeight</code> properties are used by <code>setSizeInternal()</code> to adjust the ideal dimensions to a minimum value. <code>minWidth</code> and <code>minHeight</code> do <em>not</em> affect explicit dimensions in any way.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="component-lifecycle.html">Feathers Component Lifecycle</a></p></li>
+<li><p><a href="component-validation.html">Feathers Component Validation with <code>draw()</code></a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers Scale9Image display object - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-scale9image-display-object">How to use the Feathers <code>Scale9Image</code> display object</h1>
+<p>The <a href="../api-reference/feathers/display/Scale9Image.html"><code>Scale9Image</code></a> class displays a texture divided into nine regions. When the dimensions of a <code>Scale9Image</code> are changed, the corners will not scale and each of the edges will scale in only one direction. The center region will be scaled in both directions normally. <code>Scale9Image</code> allows you to create a shape with features like rounded corners and borders for user interface components like buttons and windows.</p>
+<h2 id="regions">Regions</h2>
+<p><img src="images/scale9.png" /></p>
+<p>The image above divides a rounded rectangle into nine regions. The four lines, two horizontal and two vertical, show where the image is sliced. The exact pixel location of these &quot;slices&quot; are easily configurable, as you will see later.</p>
+<p>The image below uses arrows to show how each of the regions will scale. Some regions will not scale. Some will scale only horizontally. Some will scale only vertically. Finally, some may scale in both directions.</p>
+<p><img src="images/scale9-arrows.png" /></p>
+<p>From this point forward, each region will be named by combining its horizontal and vertical position. Horizontal positions are &quot;left&quot;, &quot;center&quot;, and &quot;right&quot;. Vertical positions are &quot;top&quot;, &quot;middle&quot;, and &quot;bottom&quot;.</p>
+<p>The top-left, top-right, bottom-left, and bottom-right regions (the corners) will not be scaled.</p>
+<p>The top-center and bottom-center region will scale horizontally. These regions will not scale vertically.</p>
+<p>The middle-left and middle-right regions will scale vertically. It will not scale horizontally.</p>
+<p>The middle-center region will scale both horizontally and vertically.</p>
+<h2 id="the-grid">The Grid</h2>
+<p>A rectangle defines the <em>grid</em>. Actually, this rectangle specifically defines the middle-center region described above. Each of the other regions can be automatically calculated using the rectangle and the original width and height of the texture.</p>
+<p>The orange rounded rectangle pictured above is <code>200</code> pixels wide and <code>130</code> pixels tall. Using the lines in the picture, we'll define the scale 9 grid. The x and y values of the rectangle are both <code>30</code>. The width of the rectangle is <code>140</code> pixels. The height of the rectangle is <code>70</code> pixels.</p>
+<pre class="code"><code>30 + 140 + 30 = 200
+30 + 70 + 30 = 130</code></pre>
+<p>The left and right regions don't necessarily need to be the same size. Neither do the top and bottom regions. However, for rounded corners, it will often be the case that these regions are the same size.</p>
+<h2 id="code">Code</h2>
+<p>First, let's create a <a href="../api-reference/feathers/textures/Scale9Textures.html"><code>feathers.textures.Scale9Textures</code></a> object:</p>
+<pre class="code"><code>var texture:Texture = Texture.fromBitmapData( bitmapData );
+var rect:Rectangle = new Rectangle( 30, 30, 140, 70 );
+var textures:Scale9Textures = new Scale9Textures( texture, rect );</code></pre>
+<p>This object is created from a standard <a href="http://doc.starling-framework.org/core/starling/textures/Texture.html"><code>starling.textures.Texture</code></a> object and the <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/geom/Rectangle.html"><code>flash.geom.Rectangle</code></a> object that defines the middle center region.</p>
+<p>We'll pass the <code>Scale9Textures</code> object to a new <a href="../api-reference/feathers/display/Scale9Image.html"><code>feathers.display.Scale9Image</code></a> object:</p>
+<pre class="code"><code>var image:Scale9Image = new Scale9Image( textures );
+image.width = 100;
+image.height = 100;
+this.addChild( image );</code></pre>
+<p>You can easily change the <code>width</code> and <code>height</code> properties, and the regions will scale appropriately, as described above.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/display/Scale9Image.html"><code>feathers.display.Scale9Image</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

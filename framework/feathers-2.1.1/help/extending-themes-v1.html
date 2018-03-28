@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>Extending legacy Feathers 1.x themes - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="extending-legacy-feathers-1.x-themes">Extending legacy Feathers 1.x themes</h1>
+<p>Sometimes, you want to use an existing Feathers <a href="themes.html">theme</a>, but you want certain components to look different than the default style. Sometimes, you can just modify the component's properties directly, but often, you will need to extend the theme and apply different skins and styles through the theme architecture.</p>
+<aside class="warn">
+The tutorial explains the theme architecture in Feathers 1.3.1 and below. For newer versions of Feathers, see <a href="extending-themes.html">Extending Feathers 2.0 Themes</a>. For information about upgrading themes to use the new architecture, see <a href="migrating-themes.html">Migrating legacy themes to Feathers 2.0</a>.
+</aside>
+<h2 id="names">Names</h2>
+<p>In <a href="themes.html">Introduction to Feathers themes</a>, you learned about <em>alternate style names</em>. When you extend a theme to style certain components differently than the default, you will be creating your own custom alternate skin names.</p>
+<p>To add a name to a component, you use the <a href="../api-reference/feathers/core/FeathersControl.html#nameList">nameList</a> property.</p>
+<pre class="code"><code>var button:Button = new Button();
+button.nameList.add( &quot;my-custom-button&quot; );
+this.addChild( button );</code></pre>
+<p>In the code above, we've added the <code>&quot;my-custom-button&quot;</code> name to the button. We can now use this name when we create our extended theme. As you can see, it is just a string. The only restriction is that names cannot contain spaces.</p>
+<p>Names only work when added to a component <em>before</em> it is added to the stage for the first time. You <strong>cannot</strong> change names later to give a component a different skin.</p>
+<h2 id="quick-and-dirty">Quick and Dirty</h2>
+<p>If you're providing your own textures and other assets, and you don't need any of the existing textures from the theme, you can simply instantiate the theme normally, and call the <code>setInitializerForClass()</code> function to pass in a function that will apply your component's skin. Let's use the button name we created above to do exactly that:</p>
+<pre class="code"><code>var theme:MetalWorksMobileTheme = new MetalWorksMobileTheme();
+theme.setInitializerForClass( Button, myCustomButtonInitializer, &quot;my-custom-button&quot; );</code></pre>
+<p>Then, the initializer might look something like this:</p>
+<pre class="code"><code>private function myCustomButtonInitializer( button:Button ):void
+{
+    button.defaultSkin = new Image( upTexture );
+    button.downSkin = new Image( downTexture );
+    button.hoverSkin = new Image( hoverTexture );
+ 
+    button.defaultLabelProperties.elementFormat = new ElementFormat(
+        new FontDescription( &quot;fontName&quot; ), 18, 0xffffff );
+}</code></pre>
+<p>That's the most basic way to extend a theme. It's best for simple changes that don't rely on the textures and other assets that the theme already uses. Let's look at a more formal example next.</p>
+<h2 id="using-a-subclass">Using a Subclass</h2>
+<p>In general, to extend a theme, it's best to create a subclass of it. This way, you can access its textures, fonts, and other <code>protected</code> variables and functions. Often, you may want to change one or the other of a component's background skins or fonts, but leave the other the same as the rest of the theme.</p>
+<p>Let's start by creating the subclass:</p>
+<pre class="code"><code>package com.example.themes
+{
+    import feathers.themes.MetalWorksMobileTheme;
+    import starling.display.DisplayObjectContainer;
+ 
+ 
+    public class ExtendedMetalWorksTheme extends MetalWorksMobileTheme
+    {
+        public function ExtendedMetalWorksTheme( root:DisplayObjectContainer, scaleToDPI:Boolean = true )
+        {
+            super( root, scaleToDPI );
+        }
+ 
+        override protected function initialize():void
+        {
+            super.initialize();
+ 
+            // set new initializers here
+        }
+    }
+}</code></pre>
+<p>Next, let's make our custom name into a static constant so that we can get proper compile time checking:</p>
+<pre class="code"><code>public static const ALTERNATE_NAME_MY_CUSTOM_BUTTON:String = &quot;my-custom-button&quot;;</code></pre>
+<p>Then, we can add it to our button's <code>nameList</code> like this instead:</p>
+<pre class="code"><code>button.nameList.add( ExtendedMetalWorksTheme.ALTERNATE_NAME_MY_CUSTOM_BUTTON );</code></pre>
+<p>Any other button in your app can use the same name too. That's the beauty of using the theming architecture.</p>
+<p>Inside the <code>initialize()</code> function of the theme, we can add our initializer function:</p>
+<pre class="code"><code>override protected function initialize():void
+{
+    super.initialize();
+ 
+    this.setInitializerForClass( Button, myCustomButtonInitializer, ALTERNATE_NAME_MY_CUSTOM_BUTTON );
+}</code></pre>
+<p>Then, we add the initializer to our theme class too:</p>
+<pre class="code"><code>private function myCustomButtonInitializer( button:Button ):void
+{
+    button.defaultSkin = new Image( upTexture );
+    button.downSkin = new Image( downTexture );
+    button.hoverSkin = new Image( hoverTexture );
+ 
+    button.defaultLabelProperties.elementFormat = this.darkUIElementFormat;
+    button.disabledLabelProperties.elementFormat = this.darkUIDisabledElementFormat;
+    button.selectedDisabledLabelProperties.elementFormat = this.darkUIDisabledElementFormat;
+}</code></pre>
+<p>Notice that custom skin textures are still used like above, but I used some text formats defined in the super class to match the rest of the theme.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="extending-themes.html">Extending Feathers 2.0 themes</a></p></li>
+<li><p><a href="migrating-themes.html">Migrating legacy themes to Feathers 2.0</a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

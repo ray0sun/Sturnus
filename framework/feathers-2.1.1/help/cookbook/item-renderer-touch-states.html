@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to support multiple touch states in a custom item renderer - Feathers Cookbook - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="../css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="../index.html">Feathers 2.1.1 Help</a> / <a href="index.html">Feathers Cookbook</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-support-multiple-touch-states-in-a-custom-item-renderer">How to support multiple touch states in a custom item renderer</h1>
+<p>We've already <a href="item-renderer-background-skin.html">added a background skin</a>, but maybe you want to display different background skins depending on if the user is touching your item renderer or not. You might also be interested in displaying different icons or changing the text styles on different touch phases. Let's listen to <a href="http://doc.starling-framework.org/core/starling/display/DisplayObject.html#event:touch"><code>TouchEvent.TOUCH</code></a> and start tracking which touch phase is active. We'll map the touch phases to states, and then we can choose a background skin (or anything else) based on the current state.</p>
+<h2 id="up-and-down-states">Up and Down States</h2>
+<p>Let's start out by tracking whether the user is touching the item renderer or not. If we use terms that you might associate with a button, this will require a default &quot;up&quot; state and a &quot;down&quot; state for when it is pressed.</p>
+<p>First, let's define a <code>currentState</code> property:</p>
+<pre class="code"><code>private var _currentState = STATE_UP;
+ 
+public function get currentState():String
+{
+    return this._currentState;
+}
+ 
+public function set currentState( value:String ):void
+{
+    if( this._currentState == value )
+    {
+        return;
+    }
+    this._currentState = value;
+    this.invalidate( INVALIDATION_FLAG_STATE );
+}</code></pre>
+<p>Notice the <code>STATE_UP</code> default value. We're going to add some constants that represent different states:</p>
+<pre class="code"><code>public static const STATE_UP:String = &quot;up&quot;;
+public static const STATE_DOWN:String = &quot;down&quot;;</code></pre>
+<p>Later, we'll set this <code>currentState</code> property in a <code>TouchEvent.TOUCH</code> listener.</p>
+<p>Next, let's make sure that we're only tracking a single touch ID:</p>
+<pre class="code"><code>protected var touchID:int = -1;</code></pre>
+<p>There's no reason to support multi-touch here, so if a touch begins, we'll ignore new touches and continue to track the original touch until it ends.</p>
+<p>Inside our constructor, or in the component's <code>initialize()</code> function, we can listen for <code>TouchEvent.TOUCH</code>:</p>
+<pre class="code"><code>override protected function initialize():void
+{
+    this.addEventListener(TouchEvent.TOUCH, touchHandler);
+ 
+    // you may be initializing other things here too
+}</code></pre>
+<aside class="info">
+For more information about the <code>initialize()</code> function and other parts of the Feathers architecture, see <a href="../component-properties-methods.html">Anatomy of a Feathers Component</a>.
+</aside>
+<p>Now, let's create our <code>TouchEvent.TOUCH</code> listener. Comments appear inline to explain each step of the process. To see where a touch begins, look at the <code>else</code> block near the bottom.</p>
+<pre class="code"><code>private function touchHandler(event:TouchEvent):void
+{
+    if(!this._isEnabled)
+    {
+        // if we were disabled while tracking touches, clear the touch id.
+        this.touchID = -1;
+ 
+        // the button should return to the up state, if it is disabled.
+        // you may also use a separate disabled state, if you prefer.
+        this.currentState = STATE_UP;
+        return;
+    }
+ 
+    if( this.touchID &gt;= 0 )
+    {
+        // a touch has begun, so we&#39;ll ignore all other touches.
+ 
+        var touch:Touch = event.getTouch( this, null, this.touchID );
+        if( !touch )
+        {
+            // this should not happen.
+            return;
+        }
+ 
+        if( touch.phase == TouchPhase.ENDED )
+        {
+            this.currentState = STATE_UP;
+ 
+            // the touch has ended, so now we can start watching for a new one.
+            this.touchID = -1;
+        }
+        return;
+    }
+    else
+    {
+        // we aren&#39;t tracking another touch, so let&#39;s look for a new one.
+ 
+        touch = event.getTouch( this, TouchPhase.BEGAN );
+        if( !touch )
+        {
+            // we only care about the began phase. ignore all other phases.
+            return;
+        }
+ 
+        this.currentState = STATE_DOWN;
+ 
+        // save the touch ID so that we can track this touch&#39;s phases.
+        this.touchID = touch.id;
+    }
+}</code></pre>
+<p>It's a little complicated, but it will ensure that we are only tracking a single touch ID at a time. In multi-touch environments, this is essential.</p>
+<p>Finally, add a listener for <a href="http://doc.starling-framework.org/core/starling/display/DisplayObject.html#event:removedFromStage"><code>Event.REMOVED_FROM_STAGE</code></a> inside the constructor or in the <code>initialize()</code> function:</p>
+<pre class="code"><code>this.addEventListener(Event.REMOVED_FROM_STAGE, removedFromStageHandler);</code></pre>
+<p>The listener will clear the <code>touchID</code> to <code>-1</code> just we did in <a href="http://doc.starling-framework.org/core/starling/events/TouchPhase.html#ENDED"><code>TouchPhase.ENDED</code></a>:</p>
+<pre class="code"><code>private function removedFromStageHandler(event:Event):void
+{
+    this.touchID = -1;
+}</code></pre>
+<p>This ensures that if a component is reused later, it won't be trying to track a touch that doesn't exist anymore.</p>
+<h2 id="hover-state">Hover State</h2>
+<p>On mobile, Starling doesn't dispatch touch events for <a href="http://doc.starling-framework.org/core/starling/events/TouchPhase.html#HOVER"><code>TouchPhase.HOVER</code></a>. However, on devices with a mouse, you may want to support a separate background skin (or icon or label styles) when the mouse hovers over your item renderer.</p>
+<p>Let's start by adding a new state for <code>TouchPhase.HOVER</code>:</p>
+<pre class="code"><code>public static const STATE_HOVER:String = &quot;hover&quot;;</code></pre>
+<p>Next, we'll modify the <code>else</code> block in the <code>TouchEvent.TOUCH</code> listener we created previously:</p>
+<pre class="code"><code>else
+{
+    // we aren&#39;t tracking another touch, so let&#39;s look for a new one.
+ 
+    touch = event.getTouch( this, TouchPhase.BEGAN );
+    if( touch )
+    {
+        this.currentState = STATE_DOWN;
+ 
+        // save the touch ID so that we can track this touch&#39;s phases.
+        this.touchID = touch.id;
+        return;
+    }
+ 
+    // this touch didn&#39;t begin, so maybe it&#39;s a hover.
+ 
+    touch = event.getTouch( this, TouchPhase.HOVER );
+    if( touch )
+    {
+        this.currentState = STATE_HOVER;
+        return;
+    }
+ 
+    // the only remaining possibility: the hover has ended.
+ 
+    this.currentState = STATE_UP;
+}</code></pre>
+<p>Now, if we don't find a touch for <a href="http://doc.starling-framework.org/core/starling/events/TouchPhase.html#BEGAN"><code>TouchPhase.BEGAN</code></a>, we also check for <code>TouchPhase.HOVER</code>. This puts us into the hover state. If we check for <code>TouchPhase.BEGAN</code> and <code>TouchPhase.HOVER</code>, and we still don't find a touch, that means that a hover has ended, and we can return to <code>STATE_UP</code>.</p>
+<p>That's not all we need to do, though. When a touch ends, we need to figure out if the mouse is still hovering over our item renderer or if the touch ended outside of the item renderer to decide if we want to change to <code>STATE_UP</code> or <code>STATE_HOVER</code>:</p>
+<pre class="code"><code>if( touch.phase == TouchPhase.ENDED )
+{
+    touch.getLocation( this.stage, HELPER_POINT );
+    var isInBounds:Boolean = this.contains( this.stage.hitTest( HELPER_POINT, true ) );
+    if( isInBounds )
+    {
+        this.currentState = STATE_HOVER;
+    }
+    else
+    {
+        this.currentState = STATE_UP;
+    }
+ 
+    // the touch has ended, so now we can start watching for a new one.
+    this.touchID = -1;
+}</code></pre>
+<p>Notice the <code>isInBounds</code> local variable. What we're doing there with the call to <a href="http://doc.starling-framework.org/core/starling/display/DisplayObjectContainer.html#contains()"><code>contains()</code></a> and <a href="http://doc.starling-framework.org/core/starling/display/DisplayObject.html#hitTest()"><code>hitTest()</code></a> is ensuring two things: 1) the touch hasn't moved outside the bounds of the item renderer and 2) nothing else on the display list has moved above the item renderer to block the touch.</p>
+<p>The second case may be a little confusing, so let's go into a bit more detail. When Starling handles a touch, it will dispatch <code>TouchEvent.TOUCH</code> to the original target for every single phase of the touch, regardless of whether other objects may be blocking the touch. It's our responsibility to ensure that a touch is still valid for the original target. We'll always receive the event for <code>TouchPhase.ENDED</code>, but the call to the <code>hitTest()</code> on the stage may not return the item renderer or any of its children. If that's the case, then we go back to <code>STATE_UP</code> instead of <code>STATE_HOVER</code>.</p>
+<p>Also, you may have seen the <code>HELPER_POINT</code> object we passed to <a href="http://doc.starling-framework.org/core/starling/events/Touch.html#getLocation()"><code>getLocation()</code></a>. We're going to add a static constant that we can pass into that function so that it doesn't need to create a new <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/geom/Point.html"><code>flash.geom.Point</code></a> for its return value. This will help us avoid some unnecessary garbage collection when we check a touch's location to help performance a bit:</p>
+<pre class="code"><code>private static const HELPER_POINT:Point = new Point();</code></pre>
+<p>It's static to avoid creating a different <code>Point</code> object for every item renderer. We simply need to ensure that multiple item renderers won't be modifying it at the same time. Since the item renderer isn't dispatching any events between the call to <code>getLocation()</code> and the call to <code>hitTest()</code>, we know that only one item renderer may be using <code>HELPER_POINT</code> at any given time.</p>
+<h2 id="selecting-a-background-skin">Selecting a Background Skin</h2>
+<p>Previously, <a href="item-renderer-background-skin.html">we added a single <code>backgroundSkin</code> property</a>. If we want to show different background skins based on the touch phases, we'll need to add more properties like <code>backgroundSkin</code> for each touch phase. In the following source code, we'll assume that a <code>downBackgroundSkin</code> property has been added. We can copy the implementation from <code>backgroundSkin</code> to <code>downBackgroundSkin</code>, but for both properties, we need to make one change. When we add the child, we also set its <code>visible</code> property to <code>false</code>:</p>
+<pre class="code"><code>if( this._downBackgroundSkin )
+{
+    this._downBackgroundSkin.visible = false;
+    this.addChildAt( this._downBackgroundSkin, 0 );
+}</code></pre>
+<p>Don't forget to add that line in the setters for both <code>backgroundSkin</code> and <code>downBackgroundSkin</code> properties. Later, we'll ensure that the <code>visible</code> property is to <code>true</code> on only the current background skin that is chosen.</p>
+<p>Now, let's add the following member variable to our class to hold the currently chosen background skin:</p>
+<pre class="code"><code>private var _currentBackgroundSkin:DisplayObject;</code></pre>
+<p>We'll update this value in a new function that we're also adding to our class:</p>
+<pre class="code"><code>private function updateCurrentBackground():void
+{
+    var newBackground:DisplayObject = this._backgroundSkin;
+    if( this._currentState == STATE_DOWN )
+    {
+        newBackground = this._downBackgroundSkin;
+    }
+    // if you have additional states, you can add else ifs here.
+ 
+    // check if the background is different than last time.
+    if( this._currentBackgroundSkin == newBackground )
+    {
+        return;
+    }
+ 
+    if( this._currentBackgroundSkin )
+    {
+        // if we have an old background, make it invisible again.
+        this._currentBackgroundSkin.visible = false;
+    }
+    this._currentBackgroundSkin = newBackground;
+    if( this._currentBackgroundSkin )
+    {
+        // if we have a new background, make it visible.
+        this._currentBackgroundSkin.visible = true;
+    }
+}</code></pre>
+<p>In this simple example code, we're only checking for <code>STATE_DOWN</code>. We could check for <code>STATE_HOVER</code> by adding an appropriate <code>else if</code> at the end. We could also use a <code>switch</code> statement instead, if preferred. The point here is simply to select the most appropriate background skin for the current state.</p>
+<h3 id="in-layoutgroup-item-renderers">In LayoutGroup Item Renderers</h3>
+<p>If you have a <a href="../layout-group-item-renderers.html">custom item renderer created with <code>LayoutGroup</code></a>, you can call this function in your <code>preLayout()</code> function:</p>
+<pre class="code"><code>override protected function preLayout():void
+{
+    this.updateCurrentBackground();
+ 
+    // you may have other code to place here
+}</code></pre>
+<p>If you are resetting the width and height of the backgroundSkin to <code>0</code> in <code>preLayout()</code>, you should do it for all background skins, since they are still considered by the layout, even if they're invisible.</p>
+<p>In the <code>postLayout()</code> function, instead of resizing <code>_backgroundSkin</code>, you should resize <code>_currentBackgroundSkin</code>:</p>
+<pre class="code"><code>override protected function postLayout():void
+{
+    if( this._currentBackgroundSkin )
+    {
+        this._currentBackgroundSkin.width = this.actualWidth;
+        this._currentBackgroundSkin.height = this.actualHeight;
+    }
+}</code></pre>
+<h3 id="in-featherscontrol-item-renderers">In FeathersControl Item Renderers</h3>
+<p>If you have a <a href="../feathers-control-item-renderers.html">custom item renderer created with <code>FeathersControl</code> and <code>IListItemRenderer</code></a>, you can call this function in your <code>draw()</code> function. First, check for the appropriate flag:</p>
+<pre class="code"><code>var stateInvalid:Boolean = this.isInvalid( INVALIDATION_FLAG_STATE );
+var skinInvalid:Boolean = this.isInvalid( INVALIDATION_FLAG_SKIN );</code></pre>
+<p>Then, call the <code>updateBackgroundSkin()</code> function if either of the flags is set:</p>
+<pre class="code"><code>if( stateInvalid || skinInvalid )
+{
+    this.updateBackgroundSkin();
+}</code></pre>
+<p>You should do this before you call <code>autoSizeIfNeeded()</code> so that the <code>_currentBackgroundSkin</code> can be used for measurement.</p>
+<p>In <code>layoutChildren()</code>, instead of resizing <code>_backgroundSkin</code>, you should resize <code>_currentBackgroundSkin</code>:</p>
+<pre class="code"><code>protected function layoutChildren():void
+{
+    if(this._currentBackgroundSkin)
+    {
+        this._currentBackgroundSkin.width = this.actualWidth;
+        this._currentBackgroundSkin.height = this.actualHeight;
+    }
+ 
+    // position and resize other children here
+}</code></pre>
+<p>Similarly, if you measure <code>_backgroundSkin</code> in <code>autoSizeIfNeeded()</code>, you should switch to measuring <code>_currentBackgroundSkin</code> instead.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../item-renderers.html">Introduction to Custom Item Renderers</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="../index.html">Feathers 2.1.1 Help</a> / <a href="index.html">Feathers Cookbook</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers ScrollText component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-scrolltext-component">How to use the Feathers <code>ScrollText</code> Component</h1>
+<p>The <a href="../api-reference/feathers/controls/ScrollText.html"><code>ScrollText</code></a> is designed for displaying long passages of text. With longer text, <code>TextFieldTextRenderer</code> may run into the maximum texture size limits. <code>BitmapFontTextRenderer</code> may be a good alternative, but with enough characters, then it may begin to affect performance. <code>ScrollText</code> provides the workaround of displaying text on the runtime's classic software-rendered display list.</p>
+<aside class="warn">
+A disadvantage of displaying text on the classic display list is that the text will <strong>always</strong> appear above Stage 3D content, including regular Starling display objects. There is no way to overlay Starling content above <code>ScrollText</code>.
+</aside>
+<h2 id="the-basics">The Basics</h2>
+<p>First, let's create a <code>ScrollText</code> component, give it some text to display, and add it to the display list.</p>
+<pre class="code"><code>var scrollText:ScrollText = new ScrollText();
+scrollText.text = &quot;Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.&quot;;
+this.addChild( scrollText );</code></pre>
+<p>As you can see, the <code>ScrollText</code> is added to the Starling display list. This is merely an abstraction. Behind the scenes, a <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html"><code>flash.text.TextField</code></a> is created and added to the classic display list. As you move and scale the <code>ScrollText</code> instance on the Starling display list, the <code>TextField</code> will be manipulated on the classic display list.</p>
+<p>If we set the <code>width</code> property, the <code>ScrollText</code> content will automatically word wrap, and the height will grow.</p>
+<pre class="code"><code>scrollText.width = 200;</code></pre>
+<p>If we set both the <code>width</code> and <code>height</code> properties, the <code>ScrollText</code> content will automatically allow scrolling if the content is taller than the height of the <code>ScrollText</code>.</p>
+<pre class="code"><code>scrollText.width = 200;
+scrollText.height = 200;</code></pre>
+<h2 id="skinning-a-scrolltext">Skinning a <code>ScrollText</code></h2>
+<p>For full details about what skin and style properties are available, see the <a href="../api-reference/feathers/controls/ScrollText.html"><code>ScrollText</code> API reference</a>. We'll look at a few of the most common properties below.</p>
+<h3 id="font-styles">Font Styles</h3>
+<p><code>ScrollText</code> may be styled with a <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html"><code>flash.text.TextFormat</code></a>. You may use fonts installed on the target device or you may embed a font.</p>
+<pre class="code"><code>scrollText.textFormat = new TextFormat( &quot;SomeEmbeddedFont&quot;, 12, true );
+scrollText.embedFonts = true;</code></pre>
+<p>Use the <a href="../api-reference/feathers/controls/ScrollText.html#isHTML"><code>isHTML</code></a> property to display the text as HTML, with the same capabilities as the <code>htmlText</code> property of <code>flash.text.TextField</code>.</p>
+<pre class="code"><code>scrollText.isHTML = true;
+scrollText.text = &quot;&lt;font color=\&quot;#ff0000\&quot;&gt;Hello world&lt;/font&gt;&quot;;</code></pre>
+<p>A number of other styling properties from <code>flash.text.TextField</code> are available to use with <code>ScrollText</code>, including <a href="../api-reference/feathers/controls/ScrollText.html#antiAliasType"><code>antiAliasType</code></a>, <a href="../api-reference/feathers/controls/ScrollText.html#backgroundColor"><code>backgroundColor</code></a>, <a href="../api-reference/feathers/controls/ScrollText.html#borderColor"><code>borderColor</code></a>, <a href="../api-reference/feathers/controls/ScrollText.html#gridFitType"><code>gridFitType</code></a>, <a href="../api-reference/feathers/controls/ScrollText.html#styleSheet"><code>styleSheet</code></a>, <a href="../api-reference/feathers/controls/ScrollText.html#sharpness"><code>sharpness</code></a>, <a href="../api-reference/feathers/controls/ScrollText.html#thickness"><code>thickness</code></a>, and others. See the <a href="../api-reference/feathers/controls/ScrollText.html"><code>ScrollText</code> API documentation</a> for full details.</p>
+<h3 id="targeting-a-scrolltext-in-a-theme">Targeting a <code>ScrollText</code> in a theme</h3>
+<p>If you are creating a <a href="themes.html">theme</a>, you can set a function for the default styles like this:</p>
+<pre class="code"><code>getStyleProviderForClass( ScrollText ).defaultStyleFunction = setScrollTextStyles;</code></pre>
+<p>If you want to customize a specific scroll text to look different than the default, you may use a custom style name to call a different function:</p>
+<pre class="code"><code>text.styleNameList.add( &quot;custom-scroll-text&quot; );</code></pre>
+<p>You can set the function for the custom style name like this:</p>
+<pre class="code"><code>getStyleProviderForClass( ScrollText )
+    .setFunctionForStyleName( &quot;custom-scroll-text&quot;, setCustomScrollTextStyles );</code></pre>
+<p>Trying to change the scroll text's styles and skins outside of the theme may result in the theme overriding the properties, if you set them before the scroll text was added to the stage and initialized. Learn to <a href="extending-themes.html">extend an existing theme</a> to add custom skins.</p>
+<p>If you aren't using a theme, then you may set any of the scroll text's properties directly.</p>
+<h3 id="skinning-the-scroll-bars">Skinning the Scroll Bars</h3>
+<p>This section only explains how to access the horizontal scroll bar and vertical scroll bar sub-components. Please read <a href="scroll-bar.html">How to use the Feathers <code>ScrollBar</code> component</a> (or <a href="simple-scroll-bar.html"><code>SimpleScrollBar</code></a>) for full details about the skinning properties that are available on scroll bar components.</p>
+<h4 id="with-a-theme">With a Theme</h4>
+<p>If you're creating a <a href="themes.html">theme</a>, you can target the <a href="../api-reference/feathers/controls/Scroller.html#DEFAULT_CHILD_STYLE_NAME_HORIZONTAL_SCROLL_BAR"><code>Scroller.DEFAULT_CHILD_STYLE_NAME_HORIZONTAL_SCROLL_BAR</code></a> style name for the horizontal scroll bar and the <a href="../api-reference/feathers/controls/Scroller.html#DEFAULT_CHILD_STYLE_NAME_VERTICAL_SCROLL_BAR"><code>Scroller.DEFAULT_CHILD_STYLE_NAME_VERTICAL_SCROLL_BAR</code></a> style name for the vertical scroll bar.</p>
+<pre class="code"><code>getStyleProviderForClass( ScrollBar )
+    .setFunctionForStyleName( Scroller.DEFAULT_CHILD_STYLE_NAME_HORIZONTAL_SCROLL_BAR, setHorizontalScrollBarStyles );
+getStyleProviderForClass( ScrollBar )
+    .setFunctionForStyleName( Scroller.DEFAULT_CHILD_STYLE_NAME_VERTICAL_SCROLL_BAR, setVerticalScrollBarStyles );</code></pre>
+<p>You can override the default style names to use different ones in your theme, if you prefer:</p>
+<pre class="code"><code>scrollText.customHorizontalScrollBarStyleName = &quot;custom-horizontal-scroll-bar&quot;;
+scrollText.customVerticalScrollBarStyleName = &quot;custom-vertical-scroll-bar&quot;;</code></pre>
+<p>You can set the function for the <a href="../api-reference/feathers/controls/Scroller.html#customHorizontalScrollBarStyleName"><code>customHorizontalScrollBarStyleName</code></a> and the <a href="../api-reference/feathers/controls/Scroller.html#customVerticalScrollBarStyleName"><code>customVerticalScrollBarStyleName</code></a> like this:</p>
+<pre class="code"><code>getStyleProviderForClass( ScrollBar )
+    .setFunctionForStyleName( &quot;custom-horizontal-scroll-bar&quot;, setCustomHorizontalScrollBarStyles,  );
+getStyleProviderForClass( ScrollBar )
+    .setFunctionForStyleName( &quot;custom-vertical-scroll-bar&quot;, setCustomVerticalScrollBarStyles );</code></pre>
+<h4 id="without-a-theme">Without a Theme</h4>
+<p>If you are not using a theme, you can use <a href="../api-reference/feathers/controls/Scroller.html#horizontalScrollBarFactory"><code>horizontalScrollBarFactory</code></a> and <a href="../api-reference/feathers/controls/Scroller.html#verticalScrollBarFactory"><code>verticalScrollBarFactory</code></a> to provide skins for the scroll bars:</p>
+<pre class="code"><code>scrollText.horizontalScrollBarFactory = function():ScrollBar
+{
+    var scrollBar:ScrollBar = new ScrollBar();
+    scrollBar.direction = ScrollBar.DIRECTION_HORIZONTAL;
+    //skin the scroll bar here
+    scrollBar.trackLayoutMode = ScrollBar.TRACK_LAYOUT_MODE_SINGLE;
+    return scrollBar;
+}</code></pre>
+<p>Alternatively, or in addition to the <code>horizontalScrollBarFactory</code> and <code>verticalScrollBarFactory</code>, you may use the <a href="../api-reference/feathers/controls/Scroller.html#horizontalScrollBarProperties"><code>horizontalScrollBarProperties</code></a> and the <a href="../api-reference/feathers/controls/Scroller.html#verticalScrollBarProperties"><code>verticalScrollBarProperties</code></a> to pass skins to the scroll bars.</p>
+<pre class="code"><code>scrollText.horizontalScrollBarProperties.trackLayoutMode = ScrollBar.TRACK_LAYOUT_MODE_SINGLE;</code></pre>
+<p>In general, you should only pass skins to the scroll bars through <code>horizontalScrollBarProperties</code> and <code>verticalScrollBarProperties</code> if you need to change skins after the scroll bar is created. Using <code>horizontalScrollBarFactory</code> and <code>verticalScrollBarFactory</code> will provide slightly better performance, and your development environment will be able to provide code hinting thanks to stronger typing.</p>
+<h2 id="customizing-scrolling-behavior">Customizing Scrolling Behavior</h2>
+<p>A number of properties are available to customize scrolling behavior and the scroll bars.</p>
+<h3 id="interaction-modes">Interaction Modes</h3>
+<p>Scrolling containers provide two main interaction modes, which can be changed using the <a href="../api-reference/feathers/controls/Scroller.html#interactionMode"><code>interactionMode</code></a> property.</p>
+<p>By default, you can scroll using touch, just like you would on many mobile devices including smartphones and tablets. This mode allows you to grab the panel anywhere within its bounds and drag it around to scroll. This mode is defined by the constant, <a href="../api-reference/feathers/controls/Scroller.html#INTERACTION_MODE_TOUCH"><code>INTERACTION_MODE_TOUCH</code></a>.</p>
+<p>Alternatively, you can set <code>interactionMode</code> to <a href="../api-reference/feathers/controls/Scroller.html#INTERACTION_MODE_MOUSE"><code>INTERACTION_MODE_MOUSE</code></a>. This mode allows you to scroll using the horizontal or vertical scroll bar sub-components. You can also use the mouse wheel to scroll vertically.</p>
+<h3 id="scroll-bar-display-mode">Scroll Bar Display Mode</h3>
+<p>The <a href="../api-reference/feathers/controls/Scroller.html#scrollBarDisplayMode"><code>scrollBarDisplayMode</code></a> property controls how and when scroll bars are displayed. This value may be overridden by the scroll policy, as explained below.</p>
+<p>The default value is <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_BAR_DISPLAY_MODE_FLOAT"><code>SCROLL_BAR_DISPLAY_MODE_FLOAT</code></a>, which displays the scroll bars above the view port's content, rather than affecting the size of the view port. When the scroll bars are floating, they fade out when the panel is not actively scrolling. This is a familiar behavior for scroll bars in the touch interaction mode. In the mouse interaction mode, the scroll bars will appear when the mouse hovers over them and then disappear when the hover ends.</p>
+<p>To completely hide the scroll bars, but still allow scrolling, you can set <code>scrollBarDisplayMode</code> to <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_BAR_DISPLAY_MODE_NONE"><code>SCROLL_BAR_DISPLAY_MODE_NONE</code></a>.</p>
+<p>Finally, if you want the scroll bars to always be visible outside of the content in a fixed position, you can set <code>scrollBarDisplayMode</code> to <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_BAR_DISPLAY_MODE_FIXED"><code>SCROLL_BAR_DISPLAY_MODE_FIXED</code></a>. This is best for traditional desktop scrollable content.</p>
+<h3 id="scroll-policies">Scroll Policies</h3>
+<p>The two previous properties control how scrolling works. The <a href="../api-reference/feathers/controls/Scroller.html#horizontalScrollPolicy"><code>horizontalScrollPolicy</code></a> and <a href="../api-reference/feathers/controls/Scroller.html#verticalScrollPolicy"><code>verticalScrollPolicy</code></a> properties control whether scrolling is enabled or not.</p>
+<p>The default scroll policy for both directions is <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_POLICY_AUTO"><code>SCROLL_POLICY_AUTO</code></a>. If the content's width is greater than the view port's width, the panel may scroll horizontally (same for height and vertical scrolling). If not, then the panel will not scroll in that direction. In addition to the <code>scrollBarDisplayMode</code>, this can affect whether the scroll bar is visible or not.</p>
+<p>You can completely disable scrolling in either direction, set the scroll policy to <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_POLICY_OFF"><code>SCROLL_POLICY_OFF</code></a>. The scroll bar will not be visible, and the panel won't scroll, even if the content is larger than the view port.</p>
+<p>Finally, you can ensure that scrolling is always enabled by setting the scroll policy to <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_POLICY_ON"><code>SCROLL_POLICY_ON</code></a>. If combined with <code>hasElasticEdges</code> in the touch interaction mode, it will create a playful edge that always bounces back, even when the content is smaller than the view port. If using the mouse interaction mode, the scroll bar may always be visible under the same circumstances, though it may be disabled if the content is smaller than the view port.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/controls/ScrollText.html"><code>feathers.controls.ScrollText</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

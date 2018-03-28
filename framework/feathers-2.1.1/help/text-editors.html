@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>Introduction to Feathers text editors - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="introduction-to-feathers-text-editors">Introduction to Feathers text editors</h1>
+<p>The Flash runtimes provide more than one way to edit text, and there are multiple different approaches to rendering text on the GPU. None of these approaches are ultimately better than the others. To allow you to choose the method that works best in your app, Feathers provides APIs that allow you to choose the appropriate <em>text editor</em> for the <a href="text-input.html"><code>TextInput</code></a> component based on your project's requirements.</p>
+<p>Different text editors may be more appropriate for some situations than others. You should keep a number of factors in mind when choosing a text editor, including (but not necessarily limited to) the following:</p>
+<ul>
+<li><p>whether the app is running on mobile or desktop</p></li>
+<li><p>whether you need to use embedded fonts or not</p></li>
+<li><p>the language of the text that needs to be displayed</p></li>
+</ul>
+<p>These factors may impact things like performance and memory usage, depending on which text editor that you choose. Additionally, some text editors are better suited to mobile or desktop, and they may not work well on other platforms. What works for one app may be very inappropriate for another.</p>
+<p>Feathers provides four different text editors. We'll learn the capabilities of each, along with their advantages and disadvantages. These text editors are listed below:</p>
+<ul>
+<li><p><a href="../api-reference/feathers/controls/text/StageTextTextEditor.html"><code>StageTextTextEditor</code></a> uses <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/StageText.html"><code>flash.text.StageText</code></a> to natively support entering text on all platforms, but especially on mobile. When the <code>TextInput</code> has focus, the <code>StageText</code> is displayed above Starling. Without focus, the <code>TextField</code> is drawn to <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/BitmapData.html"><code>BitmapData</code></a> and uploaded as a texture to the GPU.</p></li>
+<li><p><a href="../api-reference/feathers/controls/text/TextFieldTextEditor.html"><code>TextFieldTextEditor</code></a> uses <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html"><code>flash.text.TextField</code></a> to natively support entering text on all platforms. When the <code>TextInput</code> has focus, it is added to the classic display list above Starling. Without focus, the <code>TextField</code> is drawn to <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/BitmapData.html"><code>BitmapData</code></a> and uploaded as a texture to the GPU.</p></li>
+<li><p><a href="../api-reference/feathers/controls/text/TextBlockTextEditor.html"><code>TextBlockTextEditor</code></a> uses <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/TextBlock.html"><code>flash.text.engine.TextBlock</code></a> to render text in software and the result is drawn to <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/BitmapData.html"><code>BitmapData</code></a> and uploaded as a texture to the GPU. This text editor is not compatible with mobile apps.</p></li>
+<li><p><a href="../api-reference/feathers/controls/text/BitmapFontTextEditor.html"><code>BitmapFontTextEditor</code></a> uses <a href="http://wiki.starling-framework.org/manual/displaying_text#bitmap_fonts">bitmap fonts</a> to display characters as separate textured quads. This text editor is not compatible with mobile apps.</p></li>
+</ul>
+<p>We'll look at the capabilities of each text editor in more detail a bit later, and we'll even consider options for creating custom text editors.</p>
+<h2 id="the-default-text-editor-factory">The default text editor factory</h2>
+<p>In many cases, most of the <code>TextInput</code> components in your app will use the same type of text editor. To keep from repeating yourself by passing the same factory (a function that creates the text editor) to each <code>TextInput</code> separately, you can specify a global <em>default text editor factory</em> to tell all <code>TextInput</code> components in your app how to create a new text editor. Then, if some of your <code>TextInput</code> components need a different text editor, you can pass them a separate factory that will override the default one.</p>
+<p>If you don't replace it, the default text editor factory returns a <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html"><code>StageTextTextEditor</code></a>. However, when using a <a href="themes.html">theme</a>, you should check which text editor is selected as the default. Themes may be targeted at desktop, where there are better alternatives to <code>StageText</code>, or they may have special font requirements that require a different text editor. It is completely up to the theme which text editor it wants to use by default with <code>TextInput</code>.</p>
+<p>When an individual component doesn't have a custom text editor factory specified, it calls the function <a href="../api-reference/feathers/core/FeathersControl.html#defaultTextEditorFactory()"><code>FeathersControl.defaultTextEditorFactory()</code></a>. This is a static variable that references a <code>Function</code>, and it can be changed to a different function, as needed. The default implementation of this function looks like this:</p>
+<pre class="code"><code>function():ITextEditor
+{
+    return new StageTextTextEditor();
+}</code></pre>
+<p>If you would prefer to use a different text editor as the default in your app, you can easily change the variable to point to a different function. For instance, you might want to add this code to your application to use the <a href="../api-reference/feathers/controls/text/TextFieldTextEditor.html"><code>TextFieldTextEditor</code></a> instead:</p>
+<pre class="code"><code>FeathersControl.defaultTextEditorFactory = function():ITextEditor
+{
+    return new TextFieldTextEditor();
+};</code></pre>
+<h2 id="using-a-different-text-editor-on-an-individual-textinput">Using a different text editor on an individual <code>TextInput</code></h2>
+<p>You can tell a specific <code>TextInput</code> not to use the default text editor. For instance, you can pass in a custom <a href="../api-reference/feathers/controls/TextInput.html#textEditorFactory"><code>textEditorFactory</code></a> that will be used to create the input's text editor:</p>
+<pre class="code"><code>input.textEditorFactory = function():ITextEditor
+{
+    return new TextFieldTextEditor();
+}</code></pre>
+<p>You can even apply font styles and other properties in the factory before returning the text editor:</p>
+<pre class="code"><code>input.textEditorFactory = function():ITextEditor
+{
+    var editor:TextFieldTextEditor = new TextFieldTextEditor();
+    editor.textFormat = new TextFormat( &quot;Source Sans Pro&quot;, 16, 0xffffff );
+    editor.embedFonts = true;
+    return editor;
+}</code></pre>
+<p>Be careful, if you're using a theme. The theme applies its styles after this function returns. That means that the theme may end up replacing any properties that you set in the factory. See <a href="extending-themes.html">Extending Feathers Themes</a> for details about how to customize an existing theme's styles.</p>
+<h2 id="stagetexttexteditor"><code>StageTextTextEditor</code></h2>
+<p>The <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html"><code>StageTextTextEditor</code></a> implementation uses <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/StageText.html"><code>flash.text.StageText</code></a>. <code>StageText</code> is optimized to use the native text input controls on mobile platforms. <code>StageText</code> supports native copy/paste, auto-correction, auto-completion, text selection, and other advanced text input capabilities. When the <code>TextInput</code> has focus, the <code>StageText</code> instance is displayed on the classic display list above other Starling content. When focus is lost, the <code>StageText</code> is drawn to <code>BitmapData</code> and converted to a Starling <code>Texture</code> to display as a snapshot within the Starling display list. This allows the <code>TextInput</code> to be added to a scrolling container, and it will be properly clipped without the <code>StageText</code> appearing above the other Starling content.</p>
+<p><code>StageTextTextEditor</code> may use <em>device fonts</em> (the fonts installed on the user's operating system), but embedded fonts are not supported. If you need embedded fonts on mobile, you should use <code>TextFieldTextEditor</code> instead.</p>
+<p><code>StageTextTextEditor</code> may be used in desktop apps, but other text editors are recommended because they provide more features.</p>
+<p>Features of <code>StageText</code> vary both in availability and behavior per platform. On some platforms, some properties may be completely ignored. Check the <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/StageText.html"><code>StageText</code> API documentation</a> for full details.</p>
+<h3 id="using-stagetexttexteditor">Using <code>StageTextTextEditor</code></h3>
+<p>To edit text with <code>flash.text.StageText</code>, use the <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html"><code>TextFieldTextEditor</code></a> class.</p>
+<pre class="code"><code>input.textEditorFactory = function():ITextEditor
+{
+    var editor:StageTextTextEditor = new StageTextTextEditor();
+    return editor;
+};</code></pre>
+<p>Font styles may be customized using properties like <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html#fontFamily"><code>fontFamily</code></a>, <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html#fontSize"><code>fontSize</code></a>, and <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html#color"><code>color</code></a>. Many of the property names defined by <code>StageText</code> are duplicated on <code>StageTextTextEditor</code>:</p>
+<pre class="code"><code>editor.fontFamily = &quot;Arial&quot;;
+editor.fontSize = 16;
+editor.color = 0xcccccc;</code></pre>
+<p><code>StageTextTextEditor</code> provides a number of other advanced properties that may be customized, but aren't included in this quick introduction. For complete details about available properties, please take a look at the <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html"><code>StageTextTextEditor</code> API reference</a>.</p>
+<h2 id="textfieldtexteditor"><code>TextFieldTextEditor</code></h2>
+<p>The <a href="../api-reference/feathers/controls/text/TextFieldTextEditor.html"><code>TextFieldTextEditor</code></a> implementation uses <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html"><code>flash.text.TextField</code></a> with its <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html#type"><code>type</code></a> property set to <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFieldType.html#INPUT"><code>TextFieldType.INPUT</code></a>. When the <code>TextInput</code> has focus, the <code>TextField</code> instance is displayed on the classic display list above other Starling content. When focus is lost, the <code>TextField</code> is drawn to <code>BitmapData</code> and converted to a Starling <code>Texture</code> to display as a snapshot within the Starling display list. This allows the <code>TextInput</code> to be added to a scrolling container, and it will be properly clipped without the <code>TextField</code> appearing above the other Starling content.</p>
+<p><code>TextFieldTextEditor</code> may use <em>device fonts</em> (the fonts installed on the user's operating system), and it supports embedded fonts in TTF or OTF formats. For some languages with many characters, device fonts may be the only option if the number of characters would require too much memory to embedding a custom font.</p>
+<p><code>TextFieldTextEditor</code> provides a slightly less native experience on mobile than <code>StageTextTextEditor</code>. More advanced capabilities like copy and paste may not be available on all platforms when using <code>TextFieldTextEditor</code>. <code>TextFieldTextEditor</code> is best suited for situations where <code>StageTextTextEditor</code> lacks capabilities that your app requires.</p>
+<p><code>TextField</code> offers limited support for some languages, including right-to-left and bidirectional languages, and <code>StageText</code> or Flash Text Engine is recommended for these languages.</p>
+<h3 id="using-textfieldtexteditor">Using <code>TextFieldTextEditor</code></h3>
+<p>To edit text with <code>flash.text.TextField</code>, use the <a href="../api-reference/feathers/controls/text/TextFieldTextEditor.html"><code>TextFieldTextEditor</code></a> class.</p>
+<pre class="code"><code>input.textEditorFactory = function():ITextEditor
+{
+    var editor:TextFieldTextEditor = new TextFieldTextEditor();
+    return editor;
+};</code></pre>
+<p>Font styles may be customized using the native <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html"><code>flash.text.TextFormat</code></a> class. Many of the property names defined by <code>TextField</code> are duplicated on <code>TextFieldTextEditor</code>, including (but not limited to) <a href="../api-reference/feathers/controls/text/TextFieldTextEditor.html#textFormat"><code>textFormat</code></a> and <a href="../api-reference/feathers/controls/text/TextFieldTextEditor.html#embedFonts"><code>embedFonts</code></a>:</p>
+<pre class="code"><code>editor.textFormat = new TextFormat( &quot;Source Sans Pro&quot;, 16, 0xcccccc );
+editor.embedFonts = true;</code></pre>
+<p><code>TextFieldTextEditor</code> provides a number of other advanced properties that may be customized, but aren't included in this quick introduction. For complete details about available properties, please take a look at the <a href="../api-reference/feathers/controls/text/TextFieldTextEditor.html"><code>TextFieldTextEditor</code> API reference</a>.</p>
+<h2 id="textblocktexteditor"><code>TextBlockTextEditor</code></h2>
+<p>The <a href="../api-reference/feathers/controls/text/TextBlockTextEditor.html"><code>TextBlockTextEditor</code></a> implementation uses <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/TextBlock.html"><code>flash.text.engine.TextBlock</code></a>. This text editor is fully integrated with the Starling display list. The <code>TextBlock</code> is drawn to <code>BitmapData</code> and converted to a Starling <code>Texture</code> to display as a snapshot within the Starling display list. When the <code>TextInput</code> has focus, nothing is added to the classic display list above Starling.</p>
+<aside class="warn">
+<code>TextBlockTextEditor</code> is intended for use in desktop applications only, and it does not provide support for software keyboards on mobile devices.
+</aside>
+<p><code>TextFieldBlockEditor</code> may use <em>device fonts</em> (the fonts installed on the user's operating system), and it supports embedded fonts in TTF or OTF formats. For some languages with many characters, device fonts may be the only option if the number of characters would require too much memory to embedding a custom font.</p>
+<h3 id="using-textblocktexteditor">Using <code>TextBlockTextEditor</code></h3>
+<p>To edit text with <code>flash.text.engine.TextBlock</code>, use the <a href="../api-reference/feathers/controls/text/TextBlockTextEditor.html"><code>TextBlockTextEditor</code></a> class.</p>
+<pre class="code"><code>input.textEditorFactory = function():ITextEditor
+{
+    var editor:TextBlockTextEditor = new TextBlockTextEditor();
+    return editor;
+};</code></pre>
+<p>Many font styles may be customized using the native <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/ElementFormat.html"><code>flash.text.engine.ElementFormat</code></a> class. Pass an instance of <code>ElementFormat</code> to the <a href="../api-reference/feathers/controls/text/TextBlockTextEditor.html"><code>elementFormat</code></a> property:</p>
+<pre class="code"><code>var fontDescription:FontDescription = new FontDescription( &quot;Source Sans Pro&quot;, FontWeight.NORMAL, FontPosture.NORMAL, FontLookup.EMBEDDED_CFF, RenderingMode.CFF, CFFHinting.NONE );
+editor.elementFormat = new ElementFormat( fontDescription, 16, 0xcccccc );</code></pre>
+<p>The first parameter to the <code>ElementFormat</code> constructor is a <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/FontDescription.html"><code>FontDescription</code></a> object. This class is provided by Flash Text Engine to handle font lookup, including name, weight, posture, whether the font is embedded or not, and how the font is rendered.</p>
+<p><code>TextBlockTextEditor</code> provides a number of other advanced properties that may be customized, but aren't included in this quick introduction. For complete details about available properties, please take a look at the <a href="../api-reference/feathers/controls/text/TextBlockTextEditor.html"><code>TextBlockTextEditor</code> API reference</a>.</p>
+<h2 id="bitmapfonttexteditor"><code>BitmapFontTextEditor</code></h2>
+<p>The <a href="../api-reference/feathers/controls/text/BitmapFontTextEditor.html"><code>BitmapFontTextEditor</code></a> implementation uses <a href="http://wiki.starling-framework.org/manual/displaying_text#bitmap_fonts">bitmap fonts</a>. This text editor is fully integrated with the Starling display list. When the <code>TextInput</code> has focus, nothing is added to the classic display list above Starling.</p>
+<aside class="warn">
+<code>BitmapFontTextEditor</code> is intended for use in desktop applications only, and it does not provide support for software keyboards on mobile devices.
+</aside>
+<p>Bitmap fonts separate each character into sub-textures inside an atlas. These sub-textures are displayed as images placed next to each other to form words and paragraphs. If the text has a particularly stylized appearance, such as gradients and outlines, bitmap fonts provide the best performance because the styles can be calculated at design time rather than runtime.</p>
+<p>While the English language has only 26 letters in the alphabet (in addition to any punctuation and other supporting characters that you might need), some languages require many hundreds of characters. A texture that contains all of those characters may be impossible to use with bitmap fonts because it hits texture memory limits imposed by the Flash runtime or the GPU. In these situations, you may have no choice but to use device fonts.</p>
+<p>Bitmap fonts may be scaled, but because they use bitmaps, only scaling down is recommended. Even then, you may lose out on text hinting that would make vector fonts more readable at smaller sizes. It's common to include separate font sizes as separate textures for bitmap fonts to achieve the best looking results, and that can require a lot of memory.</p>
+<p><code>BitmapFontTextEditor</code> does not support multiple font styles. A <code>BitmapFontTextEditor</code> must use a single bitmap font to render its entire text.</p>
+<h3 id="using-bitmapfonttexteditor">Using <code>BitmapFontTextEditor</code></h3>
+<p>To edit text using bitmap fonts, use the <a href="../api-reference/feathers/controls/text/BitmapFontTextEditor.html"><code>BitmapFontTextEditor</code></a> class.</p>
+<pre class="code"><code>input.textEditorFactory = function():ITextEditor
+{
+    var editor:BitmapFontTextEditor = new BitmapFontTextEditor();
+    return editor;
+};</code></pre>
+<p>Font styles may be customized by passing a <a href="../api-reference/feathers/text/BitmapFontTextFormat.html"><code>BitmapFontTextFormat</code></a> instance to the <a href="../api-reference/feathers/controls/text/BitmapFontTextEditor.html#textFormat"><code>textFormat</code></a> property. The first parameter of the constructor accepts either name of a font registered with <a href="http://doc.starling-framework.org/core/starling/text/TextField.html#registerBitmapFont()"><code>TextField.registerBitmapFont()</code></a> or any <a href="http://doc.starling-framework.org/starling/text/core/BitmapFont.html"><code>BitmapFont</code></a> instance, regardless of whether it has been registered or not. Additionally, you may specify the font size (or set it to <code>NaN</code> to use the original font size) and the color of the text. The text color is applied using Starling's tinting capabilities.</p>
+<pre class="code"><code>editor.textFormat = new BitmapFontTextFormat( &quot;FontName&quot;, 14, 0xcccccc );</code></pre>
+<p><code>BitmapFontTextEditor</code> provides a number of other advanced properties that may be customized, but aren't included in this quick introduction. For complete details about available properties, please take a look at the <a href="../api-reference/feathers/controls/text/BitmapFontTextEditor.html"><code>BitmapFontTextEditor</code> API reference</a>.</p>
+<h2 id="custom-text-editors">Custom Text Editors</h2>
+<p>If you'd like to use a different approach to rendering text, you may implement the <a href="../api-reference/feathers/core/ITextEditor.html"><code>ITextEditor</code></a> interface. This interface provides a simple API for communicating with the <code>TextInput</code> component.</p>
+<p>Unless your custom editor is capable of drawing directly to the GPU, chances are that you will need to implement some form of texture snapshots, similar to the <code>StageTextTextEditor</code> or <code>TextFieldTextEditor</code>. Since Feathers is open source, feel free to look through the source code for one of these text editor classes for inspiration.</p>
+<p>Please note that unless you find a way to take advantage of <code>StageText</code> or <code>TextField</code> in your custom text editor, you will not be able to access the native soft keyboard on mobile. Without the soft keyboard, the text editor may be limited to desktop, unless you can provide an alternate keyboard.</p>
+<h2 id="multiline-text-editors">Multiline Text Editors</h2>
+<p>The <a href="text-area.html"><code>TextArea</code></a> component introduced in Feathers 1.1 allows you edit multiline text in desktop apps. It supports text editors with an extended the <a href="../api-reference/feathers/controls/text/ITextEditorViewPort.html"><code>ITextEditorViewPort</code></a> interface. Currently, the only supported text editor for <code>TextArea</code> is <a href="../api-reference/feathers/controls/text/TextFieldTextEditorViewPort.html"><code>TextFieldTextEditorViewPort</code></a>. Similar to <code>TextFieldTextEditor</code>, it uses a <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html"><code>flash.display.TextField</code></a>.</p>
+<p>On mobile, you generally should not use <code>TextArea</code>. It is designed specifically for desktop, and it may not behave as expected on mobile. Instead, use the <a href="text-input.html"><code>TextInput</code></a> component with a <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html"><code>StageTextTextEditor</code></a>. Set its <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html#multiline"><code>multiline</code></a> property to <code>true</code>. The underlying <code>StageText</code> will provide its own native scroll bar.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="../api-reference/feathers/core/text/ITextEditor.html"><code>ITextEditor</code> API Documentation</a></p></li>
+<li><p><a href="../api-reference/feathers/controls/text/StageTextTextEditor.html"><code>StageTextTextEditor</code> API Documentation</a></p></li>
+<li><p><a href="../api-reference/feathers/controls/text/TextFieldTextEditor.html"><code>TextFieldTextEditor</code> API Documentation</a></p></li>
+<li><p><a href="../api-reference/feathers/controls/text/BitmapFontTextEditor.html"><code>BitmapFontTextEditor</code> API Documentation</a></p></li>
+<li><p><a href="../api-reference/feathers/controls/text/TextBlockTextEditor.html"><code>TextBlockTextEditor</code> API Documentation</a></p></li>
+<li><p><a href="../api-reference/feathers/controls/text/TextFieldTextEditorViewPort.html"><code>TextFieldTextEditorViewPort</code> API Documentation</a></p></li>
+<li><p><a href="text-input.html">How to use the Feathers <code>TextInput</code> component</a></p></li>
+<li><p><a href="text-area.html">How to use the Feathers <code>TextArea</code> component</a></p></li>
+<li><p><a href="text-renderers.html">Introduction to Feathers Text Renderers</a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

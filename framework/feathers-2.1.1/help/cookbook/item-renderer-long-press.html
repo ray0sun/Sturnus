@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to dispatch a long press event from a custom item renderer - Feathers Cookbook - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="../css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="../index.html">Feathers 2.1.1 Help</a> / <a href="index.html">Feathers Cookbook</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-dispatch-a-long-press-event-from-a-custom-item-renderer">How to dispatch a long press event from a custom item renderer</h1>
+<p>A long press event isn't built into Starling or Feathers. Starling provides only low-level touch events, and Feathers implements long press only on <a href="../button.html">buttons</a>. Let's take a look at how to implement long press using low-level touch events to provide the same functionality as a button in an item renderer.</p>
+<p>First, let's make sure that we're only tracking a single touch ID:</p>
+<pre class="code"><code>protected var touchID:int = -1;</code></pre>
+<p>There's no reason to support multi-touch here, so if a touch begins, we'll ignore new touches and continue to track the original touch until it ends.</p>
+<p>Next, we want to remember the time when the touch began:</p>
+<pre class="code"><code>protected var touchBeganTime:int;</code></pre>
+<p>We'll use this value to calculate the duration of the touch, which will determine if we should dispatch the long press event yet.</p>
+<p>Inside our constructor, or in the component's <code>initialize()</code> function, we can listen for <a href="http://doc.starling-framework.org/core/starling/display/DisplayObject.html#event:touch"><code>TouchEvent.TOUCH</code></a>:</p>
+<pre class="code"><code>override protected function initialize():void
+{
+    this.addEventListener( TouchEvent.TOUCH, touchHandler );
+ 
+    // you may be initializing other things here too
+}</code></pre>
+<aside class="info">
+For more information about the <code>initialize()</code> function and other parts of the Feathers architecture, see <a href="../component-properties-methods.html">Anatomy of a Feathers Component</a>.
+</aside>
+<p>Now, let's create our <code>TouchEvent.TOUCH</code> listener. Comments appear inline to explain each step of the process. To see where a touch begins, look at the <code>else</code> block near the bottom.</p>
+<pre class="code"><code>private function touchHandler( event:TouchEvent ):void
+{
+    if( !this._isEnabled )
+    {
+        // if we were disabled while tracking touches, clear the touch id.
+        this.touchID = -1;
+        return;
+    }
+ 
+    if( this.touchID &gt;= 0 )
+    {
+        // a touch has begun, so we&#39;ll ignore all other touches.
+ 
+        var touch:Touch = event.getTouch( this, null, this.touchID );
+        if( !touch )
+        {
+            // this should not happen.
+            return;
+        }
+ 
+        if( touch.phase == TouchPhase.ENDED )
+        {
+            // stop checking the duration every frame because the touch ended.
+            this.removeEventListener( Event.ENTER_FRAME, enterFrameHandler );
+ 
+            // the touch has ended, so now we can start watching for a new one.
+            this.touchID = -1;
+        }
+        return;
+    }
+    else
+    {
+        // we aren&#39;t tracking another touch, so let&#39;s look for a new one.
+ 
+        touch = event.getTouch( this, TouchPhase.BEGAN );
+        if( !touch )
+        {
+            // we only care about the began phase. ignore all other phases.
+            return;
+        }
+ 
+        // save the touch ID so that we can track this touch&#39;s phases.
+        this.touchID = touch.id;
+ 
+        // save the start time, and we&#39;ll use it later
+        this.touchBeganTime = getTimer();
+ 
+        // we&#39;ll check the duration of the touch every frame
+        this.addEventListener( Event.ENTER_FRAME, enterFrameHandler );
+    }
+}</code></pre>
+<p>The structure is a little complicated, but it will ensure that we are only tracking a single touch ID at a time. In multi-touch environments, this is essential.</p>
+<p>There are two sections that specifically apply to our long press event. In the section for TouchPhase.BEGAN, we call <code>getTimer()</code> to save the time that the touch began. Then, we listen for <a href="http://doc.starling-framework.org/core/starling/display/DisplayObject.html#event:enterFrame"><code>Event.ENTER_FRAME</code></a> to track how much time has passed since the touch began. We'll look at this listener in a moment. In <a href="http://doc.starling-framework.org/core/starling/events/TouchPhase.html#ENDED"><code>TouchPhase.ENDED</code></a>, we remove that listener because the touch ends.</p>
+<p>We need to add one more thing to properly handle touch events before moving on. Let's add a listener for <a href="http://doc.starling-framework.org/core/starling/display/DisplayObject.html#event:removedFromStage"><code>Event.REMOVED_FROM_STAGE</code></a> inside the constructor or in the <code>initialize()</code> function:</p>
+<pre class="code"><code>this.addEventListener( Event.REMOVED_FROM_STAGE, removedFromStageHandler );</code></pre>
+<p>The listener will clear the <code>touchID</code> to <code>-1</code> and remove the <code>Event.ENTER_FRAME</code> listener, just we did in <code>TouchPhase.ENDED</code>:</p>
+<pre class="code"><code>private function removedFromStageHandler( event:Event ):void
+{
+    this.removeEventListener( Event.ENTER_FRAME, longPress_enterFrameHandler );
+    this.touchID = -1;
+}</code></pre>
+<p>This ensures that if a component is removed and reused later, it won't remember a touch that doesn't exist anymore.</p>
+<p>Finally, let's add the <code>Event.ENTER_FRAME</code> listener to dispatch the long press event:</p>
+<pre class="code"><code>private function enterFrameHandler( event:Event ):void
+{
+    var accumulatedTime:Number = (getTimer() - this._touchBeginTime) / 1000;
+    if( accumulatedTime &gt;= 0.5 )
+    {
+        this.removeEventListener( Event.ENTER_FRAME, longPress_enterFrameHandler );
+        this.dispatchEventWith( FeathersEventType.LONG_PRESS );
+    }
+}</code></pre>
+<p>We calculate the duration of the touch in seconds. If it's greater than half a second, then it's time to dispatch our event.</p>
+<p>You can change the duration to any number of seconds that you prefer. Similar to <code>Button</code>, you might consider adding a property to your class to make the duration customizable.</p>
+<p>Be sure to remove the <code>Event.ENTER_FRAME</code> listener. We'll wait to set <code>touchID</code> to <code>-1</code> when the touch actually ends. Then, dispatch the <a href="../../api-reference/feathers/events/FeathersEventType.html#LONG_PRESS"><code>FeathersEventType.LONG_PRESS</code></a> constant defined by Feathers.</p>
+<h2 id="combined-with-event.triggered-or-event.change">Combined with Event.TRIGGERED or Event.CHANGE</h2>
+<p>If you plan to combine, <code>FeathersEventType.LONG_PRESS</code> with <a href="http://doc.starling-framework.org/core/starling/events/Event.html#TRIGGERED"><code>Event.TRIGGERED</code></a> or <a href="http://doc.starling-framework.org/core/starling/events/Event.html#CHANGE"><code>Event.CHANGE</code></a>, you will want to add a couple extra things to ensure that the other two events aren't dispatched after a long press.</p>
+<p>First, let's add a member variable to track whether a long press has happened:</p>
+<pre class="code"><code>protected var hasLongPressed:Boolean = false;</code></pre>
+<p>Next, when we add the <code>Event.ENTER_FRAME</code> listener on <a href="http://doc.starling-framework.org/core/starling/events/TouchPhase.html#BEGAN"><code>TouchPhase.BEGAN</code></a>, we should always reset it to <code>false</code>:</p>
+<pre class="code"><code>// we haven&#39;t long pressed yet because the touch just began
+this.hasLongPressed = false;
+ 
+// save the start time, and we&#39;ll use it later
+this.touchBeganTime = getTimer();
+ 
+// we&#39;ll check the duration of the touch every frame
+this.addEventListener( Event.ENTER_FRAME, enterFrameHandler );</code></pre>
+<p>In the <code>Event.ENTER_FRAME</code> listener, we need to set <code>hasLongPressed</code> to <code>true</code> when we dispatch the event:</p>
+<pre class="code"><code>if( accumulatedTime &gt;= 0.5 )
+{
+    this.hasLongPressed = true;
+    this.removeEventListener( Event.ENTER_FRAME, longPress_enterFrameHandler );
+    this.dispatchEventWith( FeathersEventType.LONG_PRESS );
+}</code></pre>
+<p>Finally, on <a href="http://doc.starling-framework.org/core/starling/events/TouchPhase.html#ENDED"><code>TouchPhase.ENDED</code></a>, when we check the bounds before dispatching <code>Event.TRIGGERED</code> or setting <code>isSelected</code>, we should also check if we've long pressed:</p>
+<pre class="code"><code>if( !this.hasLongPressed &amp;&amp; isInBounds )
+{
+    this.dispatchEventWith( Event.TRIGGERED );
+    this.isSelected = true;
+}</code></pre>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="../item-renderers.html">Introduction to Custom Item Renderers</a></p></li>
+<li><p><a href="item-renderer-select-on-tap.html">Feathers Cookbook: How to select (or deselect) a custom item renderer on tap or click</a></p></li>
+<li><p><a href="item-renderer-triggered-on-tap.html">Feathers Cookbook: How to dispatch a triggered event from a custom item renderer</a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="../index.html">Feathers 2.1.1 Help</a> / <a href="index.html">Feathers Cookbook</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

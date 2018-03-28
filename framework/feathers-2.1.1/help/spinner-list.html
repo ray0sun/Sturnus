@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers SpinnerList component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-spinnerlist-component">How to use the Feathers <code>SpinnerList</code> component</h1>
+<p>The <a href="../api-reference/feathers/controls/SpinnerList.html"><code>SpinnerList</code></a> class extends the <a href="list.html"><code>List</code></a> component to allow the user to change the selected item by scrolling. Typically, the selected item is positioned in the center of the list, and it may be visually highlighted in some way. A <code>SpinnerList</code> will often loop infinitely, repeating its items as the user scrolls.</p>
+<h2 id="the-basics">The Basics</h2>
+<p>First, let's create a <code>SpinnerList</code> control and add it to the display list:</p>
+<pre class="code"><code>var list:SpinnerList = new SpinnerList();
+this.addChild( list );</code></pre>
+<p>Similar to a <code>List</code>, we can pass a <a href="../api-reference/feathers/data/ListCollection.html"><code>ListCollection</code></a> to the <a href="../api-reference/feathers/controls/List.html#dataProvider"><code>dataProvider</code></a> property:</p>
+<pre class="code"><code>list.dataProvider = new ListCollection(
+[
+    { text: &quot;Milk&quot;, thumbnail: textureAtlas.getTexture( &quot;milk&quot; ) },
+    { text: &quot;Eggs&quot;, thumbnail: textureAtlas.getTexture( &quot;eggs&quot; ) },
+    { text: &quot;Bread&quot;, thumbnail: textureAtlas.getTexture( &quot;bread&quot; ) },
+    { text: &quot;Chicken&quot;, thumbnail: textureAtlas.getTexture( &quot;chicken&quot; ) },
+]);</code></pre>
+<p>We'll set up the label and icon in the item renderer the same way too:</p>
+<pre class="code"><code>list.itemRendererProperties.labelField = &quot;text&quot;;
+list.itemRendererProperties.iconSourceField = &quot;thumbnail&quot;;</code></pre>
+<p>We can listen for selection changes with <a href="../api-reference/feathers/controls/List.html#event:change"><code>Event.CHANGE</code></a>:</p>
+<pre class="code"><code>list.addEventListener( Event.CHANGE, list_changeHandler );</code></pre>
+<p>Likewise, we can use the <a href="../api-reference/feathers/controls/List.html#selectedIndex"><code>selectedIndex</code></a> and <a href="../api-reference/feathers/controls/List.html#selectedItem"><code>selectedItem</code></a> properties:</p>
+<pre class="code"><code>list.selectedIndex = 3;
+trace( list.selectedItem.text ); //Chicken</code></pre>
+<p>One way that <code>SpinnerList</code> behaves differently is that selection may not be disabled. A regular <code>List</code> may be used to display read-only content without selection, but the purpose of <code>SpinnerList</code> is to select an item. If you attempt to set the <a href="../api-reference/feathers/controls/List.html#isSelectable"><code>isSelectable</code></a> property to <code>false</code>, a runtime error will be thrown.</p>
+<h2 id="skinning-an-spinnerlist">Skinning an <code>SpinnerList</code></h2>
+<p>A spinner list provides a number of properties to customize its appearance. For full details about what skin and style properties are available, see the <a href="../api-reference/feathers/controls/SpinnerList.html"><code>SpinnerList</code> API reference</a>. We'll look at a few of the most common properties below.</p>
+<h3 id="highlight-the-selected-item">Highlight the selected item</h3>
+<p>To add a display object above the selected item to visually highlight it, you may use the <a href="../api-reference/feathers/controls/SpinnerList.html#selectionOverlaySkin"><code>selectionOverlaySkin</code></a> property:</p>
+<pre class="code"><code>list.selectionOverlaySkin = new Scale9Image( textures );</code></pre>
+<p>This skin will be displayed in the center of the list, positioned either horizontally or vertically, depending on which way the list may be scrolled.</p>
+<p>As mentioned above, <code>SpinnerList</code> is a subclass of <code>List</code>. For more detailed information about the skinning options available to <code>SpinnerList</code>, see <a href="list.html">How to use the Feathers <code>List</code> component</a>.</p>
+<h3 id="targeting-an-spinnerlist-in-a-theme">Targeting an <code>SpinnerList</code> in a theme</h3>
+<p>If you are creating a <a href="themes.html">theme</a>, you can set a function for the default styles like this:</p>
+<pre class="code"><code>getStyleProviderForClass( SpinnerList ).defaultStyleFunction = setSpinnerListStyles;</code></pre>
+<p>If you want to customize a specific <code>SpinnerList</code> to look different than the default, you may use a custom style name to call a different function:</p>
+<pre class="code"><code>list.styleNameList.add( &quot;custom-spinner-list&quot; );</code></pre>
+<p>You can set the function for the custom style name like this:</p>
+<pre class="code"><code>getStyleProviderForClass( SpinnerList )
+    .setFunctionForStyleName( &quot;custom-spinner-list&quot;, setCustomSpinnerListStyles );</code></pre>
+<p>Trying to change the spinner list's styles and skins outside of the theme may result in the theme overriding the properties, if you set them before the spinner list was added to the stage and initialized. Learn to <a href="extending-themes.html">extend an existing theme</a> to add custom skins.</p>
+<p>If you aren't using a theme, then you may set any of the spinner list's properties directly.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="../api-reference/feathers/controls/SpinnerList.html"><code>feathers.controls.SpinnerList</code> API Documentation</a></p></li>
+<li><p><a href="list.html">How to Use the Feathers <code>List</code> Component</a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers LayoutGroup component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-layoutgroup-component">How to use the Feathers <code>LayoutGroup</code> component</h1>
+<p>The <a href="../api-reference/feathers/controls/LayoutGroup.html"><code>LayoutGroup</code></a> class provides a generic container for layout, without scrolling. By default, you can position children manually, but you can also pass in a layout implementation, like <a href="horizontal-layout.html"><code>HorizontalLayout</code></a> or <a href="vertical-layout.html"><code>VerticalLayout</code></a> to position the children automatically.</p>
+<aside class="info">
+If you need scrolling, you should use the <a href="scroll-container.html"><code>ScrollContainer</code></a> component instead.
+</aside>
+<h2 id="the-basics">The Basics</h2>
+<p>First, let's create a <code>LayoutGroup</code> container and add it to the display list:</p>
+<pre class="code"><code>var group:LayoutGroup = new LayoutGroup();
+this.addChild( group );</code></pre>
+<p>A <code>LayoutGroup</code> works a lot like any <a href="http://doc.starling-framework.org/core/starling/display/DisplayObjectContainer.html"><code>DisplayObjectContainer</code></a>, so you can use the standard <code>addChild()</code>, <code>removeChild()</code> and other display list manipulation functions.</p>
+<pre class="code"><code>var xPosition:Number = 0;
+for(var i:int = 0; i &lt; 5; i++)
+{
+    var quad:Quad = new Quad( 100, 100, 0xff0000 );
+    quad.x = xPosition;
+    group.addChild( quad );
+    xPosition += quad.width + 10;
+}</code></pre>
+<p>The children of a <code>LayoutGroup</code> do not need to be Feathers UI controls. As you can see above, we've added some Starling <a href="http://doc.starling-framework.org/core/starling/display/Quad.html"><code>Quad</code></a> instances.</p>
+<p>By default, the <code>LayoutGroup</code> will automatically resize itself to fit the area that the children occupy. We can set the width and height manually, if desired, to override this behavior:</p>
+<pre class="code"><code>group.width = 200;
+group.height = 200;</code></pre>
+<p>You'll notice that the children are still visible. By default, clipping is disabled on <code>LayoutGroup</code> to maximize rendering performance. Set the <a href="../api-reference/feathers/controls/LayoutGroup.html#clipContent"><code>clipContent</code></a> property to <code>true</code> to enable clipping, if desired.</p>
+<h2 id="layout">Layout</h2>
+<p>We manually positioned the quads in the example code above. Instead, let's pass a <a href="../api-reference/feathers/layout/HorizontalLayout.html"><code>HorizontalLayout</code></a> to the <a href="../api-reference/feathers/controls/LayoutGroup.html#layout"><code>layout</code></a> property of the <code>LayoutGroup</code>. This layout will calculate the positioning of children for us automatically:</p>
+<pre class="code"><code>var layout:HorizontalLayout = new HorizontalLayout();
+layout.gap = 10;
+group.layout = layout;</code></pre>
+<p>Here, we've set the <a href="../api-reference/feathers/layout/HorizontalLayout.html#gap"><code>gap</code></a> property, but <code>HorizontalLayout</code> provides many more useful features. See <a href="horizontal-layout.html">How to use <code>HorizontalLayout</code> with Feathers containers</a> for complete details.</p>
+<aside class="info">
+Feathers comes with a number of different <a href="index.html#layouts">layouts</a>, in addition to <code>HorizontalLayout</code>.
+</aside>
+<h2 id="skinning-a-layoutgroup">Skinning a <code>LayoutGroup</code></h2>
+<p>The skins for a <code>LayoutGroup</code> control are mainly the background skins. For full details about what skin and style properties are available, see the <a href="../api-reference/feathers/controls/LayoutGroup.html"><code>LayoutGroup</code> API reference</a>. We'll look at a few of the most common properties below.</p>
+<h3 id="background-skins-and-basic-styles">Background Skins and Basic Styles</h3>
+<p>We'll start the skinning process by giving our group appropriate background skins.</p>
+<pre class="code"><code>container.backgroundSkin = new Scale9Image( enabledTextures );
+container.backgroundDisabledSkin = new Image( disabledTextures );</code></pre>
+<p>The <a href="../api-reference/feathers/controls/LayoutGroup.html#backgroundSkin"><code>backgroundSkin</code></a> property provides the default background for when the container is enabled. The <a href="../api-reference/feathers/controls/LayoutGroup.html#backgroundDisabledSkin"><code>backgroundDisabledSkin</code></a> is displayed when the group is disabled.</p>
+<h3 id="targeting-a-layoutgroup-in-a-theme">Targeting a LayoutGroup in a theme</h3>
+<p>If you are creating a <a href="themes.html">theme</a>, you can set a function for the default styles like this:</p>
+<pre class="code"><code>getStyleProviderForClass( LayoutGroup ).defaultStyleFunction = setLayoutGroupStyles;</code></pre>
+<p>If you want to customize a specific group to look different than the default, you may use a custom style name to call a different function:</p>
+<pre class="code"><code>group.styleNameList.add( &quot;custom-layout-group&quot; );</code></pre>
+<p>You can set the function for the custom style name like this:</p>
+<pre class="code"><code>getStyleProviderForClass( LayoutGroup )
+    .setFunctionForStyleName( &quot;custom-layout-group&quot;, setCustomLayoutGroupStyles );</code></pre>
+<p>Trying to change the group's styles and skins outside of the theme may result in the theme overriding the properties, if you set them before the group was added to the stage and initialized. Learn to <a href="extending-themes.html">extend an existing theme</a> to add custom skins.</p>
+<p>If you aren't using a theme, then you may set any of the group's properties directly.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/controls/LayoutGroup.html"><code>feathers.controls.LayoutGroup</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

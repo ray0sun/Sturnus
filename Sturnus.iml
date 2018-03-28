@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="Flex" version="4">
+  <component name="FlexBuildConfigurationManager" active="Sturnus">
+    <configurations>
+      <configuration name="Sturnus" target-platform="Desktop" pure-as="true" main-class="main.Main" output-file="Main.swf" output-folder="$MODULE_DIR$/out/production/Sturnus">
+        <dependencies target-player="19.0">
+          <entries>
+            <entry library-id="656ffc0c-a372-4552-9ef1-37e815040d8a">
+              <dependency linkage="Merged" />
+            </entry>
+            <entry library-id="32c5c408-2e4c-49b7-a114-b66d9261ac67">
+              <dependency linkage="Merged" />
+            </entry>
+            <entry library-id="5075b7c9-0ee2-4244-b247-6224f8d483cc">
+              <dependency linkage="Merged" />
+            </entry>
+          </entries>
+          <sdk name="air19_sdk_mac" />
+        </dependencies>
+        <compiler-options />
+        <packaging-air-desktop use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/Main-app.xml" package-file-name="Main">
+          <files-to-package>
+            <FilePathAndPathInPackage file-path="$MODULE_DIR$/src/assets" path-in-package="assets" />
+          </files-to-package>
+        </packaging-air-desktop>
+        <packaging-android />
+        <packaging-ios />
+      </configuration>
+    </configurations>
+    <compiler-options />
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+    </content>
+    <orderEntry type="jdk" jdkName="air19_sdk_mac" jdkType="Flex SDK Type (new)" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library" exported="">
+      <library type="flex">
+        <properties id="656ffc0c-a372-4552-9ef1-37e815040d8a" />
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/framework/Gamua-Starling-Framework-c414de1/starling/bin/starling.swc!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library type="flex">
+        <properties id="32c5c408-2e4c-49b7-a114-b66d9261ac67" />
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/framework/feathers-2.1.1/swc/feathers.swc!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library type="flex">
+        <properties id="5075b7c9-0ee2-4244-b247-6224f8d483cc" />
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/framework/as3commons-reflect-1.6.4.swc!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+  </component>
+</module>

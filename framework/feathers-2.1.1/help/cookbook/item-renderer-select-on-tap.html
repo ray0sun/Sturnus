@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to select (or deselect) a custom item renderer on tap or click - Feathers Cookbook - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="../css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="../index.html">Feathers 2.1.1 Help</a> / <a href="index.html">Feathers Cookbook</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-select-or-deselect-a-custom-item-renderer-on-tap-or-click">How to select (or deselect) a custom item renderer on tap or click</h1>
+<p>The example <a href="../item-renderers.html">custom item renderers</a> have an <a href="../../api-reference/feathers/controls/renderers/IToggle.html#isSelected"><code>isSelected</code></a> property, but they don't offer any way to change it. This is because some item renderers may support a variety of interactions to select, such as a long-press, a swipe, or a tap/click. Since it's the simplest interaction, let's take a look at how to select a custom item renderer on tap or click.</p>
+<p>First, let's make sure that we're only tracking a single touch ID:</p>
+<pre class="code"><code>protected var touchID:int = -1;</code></pre>
+<p>There's no reason to track more than one touch here, so if a touch begins, we'll ignore other touches that begin before the original touch ends.</p>
+<p>Inside our constructor, or in the component's <code>initialize()</code> function, we can listen for <a href="http://doc.starling-framework.org/core/starling/display/DisplayObject.html#event:touch"><code>TouchEvent.TOUCH</code></a>:</p>
+<pre class="code"><code>override protected function initialize():void
+{
+    this.addEventListener( TouchEvent.TOUCH, touchHandler );
+ 
+    // you may be initializing other things here too
+}</code></pre>
+<aside class="info">
+For more information about the <code>initialize()</code> function and other parts of the Feathers architecture, see <a href="../component-properties-methods.html">Anatomy of a Feathers Component</a>.
+</aside>
+<p>Now, let's create our <code>TouchEvent.TOUCH</code> listener. Comments appear inline to explain each step of the process. To see where a touch begins, look at the <code>else</code> block near the bottom.</p>
+<pre class="code"><code>private function touchHandler( event:TouchEvent ):void
+{
+    if( !this._isEnabled )
+    {
+        // if we were disabled while tracking touches, clear the touch id.
+        this.touchID = -1;
+        return;
+    }
+ 
+    if( this.touchID &gt;= 0 )
+    {
+        // a touch has begun, so we&#39;ll ignore all other touches.
+ 
+        var touch:Touch = event.getTouch( this, null, this.touchID );
+        if( !touch )
+        {
+            // this should not happen.
+            return;
+        }
+ 
+        if( touch.phase == TouchPhase.ENDED )
+        {
+            touch.getLocation( this.stage, HELPER_POINT );
+            var isInBounds:Boolean = this.contains( this.stage.hitTest( HELPER_POINT, true ) );
+            if( isInBounds )
+            {
+                this.isSelected = true;
+            }
+ 
+            // the touch has ended, so now we can start watching for a new one.
+            this.touchID = -1;
+        }
+        return;
+    }
+    else
+    {
+        // we aren&#39;t tracking another touch, so let&#39;s look for a new one.
+ 
+        touch = event.getTouch( this, TouchPhase.BEGAN );
+        if( !touch )
+        {
+            // we only care about the began phase. ignore all other phases.
+            return;
+        }
+ 
+        // save the touch ID so that we can track this touch&#39;s phases.
+        this.touchID = touch.id;
+    }
+}</code></pre>
+<p>It's a little complicated, but it will ensure that we are only tracking a single touch ID at a time. In multi-touch environments, this is essential.</p>
+<p>The key part is the line with the <code>isInBounds</code> local variable. What we're doing there with the call to <a href="http://doc.starling-framework.org/core/starling/display/DisplayObjectContainer.html#contains()"><code>contains()</code></a> and <a href="http://doc.starling-framework.org/core/starling/display/DisplayObject.html#hitTest()"><code>hitTest()</code></a> is ensuring two things: 1) the touch hasn't moved outside the bounds of the item renderer, and 2) nothing else on the display list has moved above the item renderer to block the touch.</p>
+<p>Also, you may have seen the <code>HELPER_POINT</code> object we passed to <a href="http://doc.starling-framework.org/core/starling/events/Touch.html#getLocation()"><code>getLocation()</code></a> We're going to add a static constant that we can pass into that function so that it doesn't need to create a new <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/geom/Point.html"><code>flash.geom.Point</code></a> for its return value. This will help us avoid some unnecessary garbage collection when we check a touch's location to help performance a bit:</p>
+<pre class="code"><code>private static const HELPER_POINT:Point = new Point();</code></pre>
+<p>It's static to avoid creating a different <code>Point</code> object for every item renderer. We simply need to ensure that multiple item renderers won't be modifying it at the same time. Since the item renderer isn't dispatching any events between the call to <code>getLocation()</code> and the call to <code>hitTest()</code>, we know that only one item renderer may be using <code>HELPER_POINT</code> at any given time.</p>
+<p>Finally, add a listener for <a href="http://doc.starling-framework.org/core/starling/display/DisplayObject.html#event:removedFromStage"><code>Event.REMOVED_FROM_STAGE</code></a> inside the constructor or in the <code>initialize()</code> function:</p>
+<pre class="code"><code>this.addEventListener( Event.REMOVED_FROM_STAGE, removedFromStageHandler );</code></pre>
+<p>The listener will clear the <code>touchID</code> to <code>-1</code> just like we did in <code>TouchPhase.ENDED</code>:</p>
+<pre class="code"><code>private function removedFromStageHandler( event:Event ):void
+{
+    this.touchID = -1;
+}</code></pre>
+<p>This ensures that if a component is reused later, it won't be trying to track a touch that doesn't exist anymore.</p>
+<h2 id="deselect-on-tap-or-click">Deselect on Tap or Click</h2>
+<p>You may have noticed in the code above that the <code>isSelected</code> property is set to <code>true</code> on tap or click. If you want it to be possible to deselect an item renderer by tapping it again, it's very easy to change that line:</p>
+<pre class="code"><code>this.isSelected = !this.isSelected;</code></pre>
+<p>By default, the <code>List</code> component may select only one item at a time. If you select one item by tapping it, and then select another item by tapping it, the first item will be deselected automatically. If you wish to keep both the first item and the second item selected at the same time, set the <a href="../../api-reference/feathers/controls/List.html#allowMultipleSelection"><code>allowMultipleSelection</code></a> property on the <code>List</code> to <code>true</code>.</p>
+<h2 id="event.triggered-in-pickerlist">Event.TRIGGERED in PickerList</h2>
+<p>The <code>PickerList</code> component additionally listens for <a href="../../api-reference/feathers/controls/Button.html#event:triggered"><code>Event.TRIGGERED</code></a> to know when to close its pop-up list. If you tap or click an item that is already selected, it may not change the selection, so an additional event is required.</p>
+<p>Before you set <code>isSelected</code>, simply dispatch <code>Event.TRIGGERED</code>:</p>
+<pre class="code"><code>if( isInBounds )
+{
+    this.dispatchEventWith( Event.TRIGGERED );
+    this.isSelected = true;
+}</code></pre>
+<p>The <code>TouchEvent.TOUCH</code> listener is exactly the same everywhere else.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="../item-renderers.html">Introduction to Custom Item Renderers</a></p></li>
+<li><p><a href="item-renderer-triggered-on-tap.html">Feathers Cookbook: Dispatching a triggered event from a custom item renderer</a></p></li>
+<li><p><a href="item-renderer-long-press.html">Feathers Cookbook: Dispatching a long press event from a custom item renderer</a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="../index.html">Feathers 2.1.1 Help</a> / <a href="index.html">Feathers Cookbook</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

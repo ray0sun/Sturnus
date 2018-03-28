@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers SimpleScrollBar component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-simplescrollbar-component">How to use the Feathers <code>SimpleScrollBar</code> Component</h1>
+<p>The <a href="../api-reference/feathers/controls/SimpleScrollBar.html"><code>SimpleScrollBar</code></a> component displays a numeric value between a minimum and maximum. The value may be changed by sliding a thumb along an invisible track in either a horizontal or a vertical direction. This component is designed to be used with components that support scrolling, like <a href="scroll-container.html"><code>ScrollContainer</code></a> and <a href="list.html"><code>List</code></a>.</p>
+<aside class="info">
+Additionally, Feathers offers a <a href="scroll-bar.html"><code>ScrollBar</code></a> component. This is a desktop-style scroll bar that offers a thumb, track, and two buttons for adjusting the value by a small step.
+</aside>
+<h2 id="the-basics">The Basics</h2>
+<p>You can use the <code>SimpleScrollBar</code> with a class like <code>ScrollContainer</code> or <code>List</code> by instantiating it in the <a href="../api-reference/feathers/controls/Scroller.html#horizontalScrollBarFactory"><code>horizontalScrollBarFactory</code></a> or the <a href="../api-reference/feathers/controls/Scroller.html#verticalScrollBarFactory"><code>verticalScrollBarFactory</code></a>.</p>
+<pre class="code"><code>list.horizontalScrollBarFactory = function():IScrollBar
+{
+    return new SimpleScrollBar();
+}</code></pre>
+<p>The container will automatically handle setting properties like <a href="../api-reference/feathers/controls/SimpleScrollBar.html#direction"><code>direction</code></a>, <a href="../api-reference/feathers/controls/SimpleScrollBar.html#minimum"><code>minimum</code></a>, <a href="../api-reference/feathers/controls/SimpleScrollBar.html#maximum"><code>maximum</code></a>, and <a href="../api-reference/feathers/controls/SimpleScrollBar.html#step"><code>step</code></a>, and it will automatically listen for <a href="../api-reference/feathers/controls/SimpleScrollBar.html#event:change"><code>Event.CHANGE</code></a> to know when the <a href="../api-reference/feathers/controls/SimpleScrollBar.html#value"><code>value</code></a> property changes.</p>
+<aside class="info">
+If, for some reason, you want to use a <code>SimpleScrollBar</code> outside of a container, the values like <code>minimum</code>, <code>maximum</code>, <code>step</code> and <code>value</code> that are normally handled by the container work similarly to the same properties on a <a href="slider.html"><code>Slider</code></a> component.
+</aside>
+<h2 id="skinning-a-simplescrollbar">Skinning a <code>SimpleScrollBar</code></h2>
+<p>The <code>SimpleScrollBar</code> has one part that may be skinned, its thumb. A SimpleScrollBar's track is invisible. That's where the &quot;simple&quot; part comes from. For full details about what skin and style properties are available, see the <a href="../api-reference/feathers/controls/SimpleScrollBar.html"><code>SimpleScrollBar</code> API reference</a>.</p>
+<h3 id="targeting-a-simplescrollbar-in-a-theme">Targeting a <code>SimpleScrollBar</code> in a theme</h3>
+<p>If you are creating a <a href="themes.html">theme</a>, you can set a function for the default styles like this:</p>
+<pre class="code"><code>getStyleProviderForClass( SimpleScrollBar ).defaultStyleFunction = setSimpleScrollBarStyles;</code></pre>
+<p>If you want to customize a specific simple scroll bar to look different than the default, you may use a custom style name to call a different function:</p>
+<pre class="code"><code>scrollBar.styleNameList.add( &quot;custom-simple-scroll-bar&quot; );</code></pre>
+<p>You can set the function for the custom style name like this:</p>
+<pre class="code"><code>getStyleProviderForClass( SimpleScrollBar )
+    .setFunctionForStyleName( &quot;custom-simple-scroll-bar&quot;, setCustomSimpleScrollBarStyles );</code></pre>
+<p>Trying to change the scroll bar's styles and skins outside of the theme may result in the theme overriding the properties, if you set them before the scroll bar was added to the stage and initialized. Learn to <a href="extending-themes.html">extend an existing theme</a> to add custom skins.</p>
+<p>If you aren't using a theme, then you may set any of the simple scroll bar's properties directly.</p>
+<h3 id="skinning-the-thumb">Skinning the Thumb</h3>
+<p>This section only explains how to access the thumb sub-component. Please read <a href="button.html">How to use the Feathers <code>Button</code> component</a> for full details about the skinning properties that are available on <code>Button</code> components.</p>
+<h4 id="with-a-theme">With a Theme</h4>
+<p>If you're creating a <a href="themes.html">theme</a>, you can target the <a href="../api-reference/feathers/controls/SimpleScrollBar.html#DEFAULT_CHILD_STYLE_NAME_THUMB"><code>SimpleScrollBar.DEFAULT_CHILD_STYLE_NAME_THUMB</code></a> style name.</p>
+<pre class="code"><code>getStyleProviderForClass( Button )
+    .setFunctionForStyleName( SimpleScrollBar.DEFAULT_CHILD_STYLE_NAME_THUMB, setScrollBarThumbStyles );</code></pre>
+<p>You can override the default style name to use a different one in your theme, if you prefer:</p>
+<pre class="code"><code>scrollBar.customThumbStyleName = &quot;custom-thumb&quot;;</code></pre>
+<p>You can set the function for the <a href="../api-reference/feathers/controls/SimpleScrollBar.html#customThumbStyleName"><code>customThumbStyleName</code></a> like this:</p>
+<pre class="code"><code>getStyleProviderForClass( Button )
+    .setFunctionForStyleName( &quot;custom-thumb&quot;, setScrollBarCustomThumbStyles );</code></pre>
+<h4 id="without-a-theme">Without a Theme</h4>
+<p>If you are not using a theme, you can use <a href="../api-reference/feathers/controls/SimpleScrollBar.html#thumbFactory"><code>thumbFactory</code></a> to provide skins for the scroll bar's thumb:</p>
+<pre class="code"><code>scrollBar.thumbFactory = function():Button
+{
+    var button:Button = new Button();
+    //skin the thumb here
+    button.defaultSkin = new Image( upTexture );
+    button.downSkin = new Image( downTexture );
+    return button;
+}</code></pre>
+<p>Alternatively, or in addition to the <code>thumbFactory</code>, you may use the <a href="../api-reference/feathers/controls/SimpleScrollBar.html#thumbProperties"><code>thumbProperties</code></a> to pass skins to the thumb.</p>
+<pre class="code"><code>scrollBar.thumbProperties.defaultSkin = new Image( upTexture );
+scrollBar.thumbProperties.downSkin = new Image( downTexture );</code></pre>
+<p>In general, you should only pass skins to the scroll bar's thumb through <code>thumbProperties</code> if you need to change skins after the thumb is created. Using <code>thumbFactory</code> will provide slightly better performance, and your development environment will be able to provide code hinting thanks to stronger typing.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/controls/SimpleScrollBar.html"><code>feathers.controls.SimpleScrollBar</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

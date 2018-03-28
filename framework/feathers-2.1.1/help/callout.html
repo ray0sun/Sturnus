@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers Callout component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-callout-component">How to use the Feathers <code>Callout</code> component</h1>
+<p>The <a href="../api-reference/feathers/controls/Callout.html"><code>Callout</code></a> class renders content as a <a href="pop-ups.html">pop-up</a> over all other content. Typically, a callout displays a rectangular border with an arrow or tail that points to an origin display object, such as a button. The arrow may appear on any of the callout's edges. The callout will close automatically when a touch is detected outside of the callout's bounds.</p>
+<h2 id="the-basics">The Basics</h2>
+<p>We create a <code>Callout</code> a bit differently than other components. Rather than calling a constructor, we call the static function <a href="../api-reference/feathers/controls/Callout.html#show()"><code>Callout.show()</code></a>. Let's see how this works by displaying a <a href="http://doc.starling-framework.org/core/starling/display/Image.html"><code>starling.display.Image</code></a> in a <code>Callout</code> when we touch a button. First, let's create the button:</p>
+<pre class="code"><code>var button:Button = new Button();
+button.label = &quot;Click Me&quot;;
+button.addEventListener( Event.TRIGGERED, button_triggeredHandler );
+this.addChild( button );</code></pre>
+<p>Then, in the listener for the <code>Event.TRIGGERED</code> event, we create the callout:</p>
+<pre class="code"><code>function button_triggeredHandler( event:Event ):void
+{
+    var button:Button = Button( event.currentTarget );
+    var content:Image = new Image( myTexture );
+    var callout:Callout = Callout.show( content, button );
+}</code></pre>
+<p>Two arguments are required. The first is the callout's content. This may be any Starling display object. The callout will be automatically resized to fit its content, unless you set <code>width</code> or <code>height</code> manually. The second argument is the origin of the callout. When the callout is shown, it will be automatically positioned so that its arrow points at the origin.</p>
+<p>A callout may be closed manually by calling the <a href="../api-reference/feathers/controls/Callout.html#close()"><code>close()</code></a> function.</p>
+<p>Additional arguments are available for <code>Callout.show()</code>. Let's take a look at those.</p>
+<h3 id="direction">Direction</h3>
+<p>The next is the callout's direction, which is where the callout appears relative to its origin. By default, this is <a href="../api-reference/feathers/controls/Callout.html#DIRECTION_ANY"><code>Callout.DIRECTION_ANY</code></a> which means that the callout may open <a href="../api-reference/feathers/controls/Callout.html#DIRECTION_UP">above</a>, <a href="../api-reference/feathers/controls/Callout.html#DIRECTION_DOWN">below</a>, to the <a href="../api-reference/feathers/controls/Callout.html#DIRECTION_LEFT">left</a>, or to the <a href="../api-reference/feathers/controls/Callout.html#DIRECTION_RIGHT">right</a> of the origin. The exact direction will be chosen automatically based on a number of factors to place the callout in an ideal location. You can change this argument to select a specific direction if you never want the callout to open in one of the other directions.</p>
+<h3 id="modality">Modality</h3>
+<p>Following the direction is the <code>isModal</code> parameter. This determines whether there is an overlay between the callout and the rest of the display list. When a callout is modal, the overlay blocks touches to everything that appears under the callout. The callout may be closed by touching outside the bounds of the callout, or by calling <code>close()</code> on the <code>Callout</code> instance. If the callout isn't modal, the callout will still close when the user touches something outside of the callout (the same as a modal callout), but there will be no overlay to block the touch, and anything below the callout will remain interactive.</p>
+<p>Callouts are displayed using the <a href="pop-ups.html"><code>PopUpManager</code></a>. By default, modal overlays are managed by the <code>PopUpManager</code>, but you can give a custom overlay to callouts (that will be different from other modal pop-ups) when you set the static property, <a href="../api-reference/feathers/controls/Callout.html#calloutOverlayFactory"><code>calloutOverlayFactory</code></a>:</p>
+<pre class="code"><code>Callout.calloutOverlayFactory = function():DisplayObject
+{
+    return new TiledImage( myTexture );
+};</code></pre>
+<p>When <a href="../api-reference/feathers/core/PopUpManager.html#addPopUp()"><code>PopUpManager.addPopUp()</code></a> is called to show the callout, the custom overlay factory will be passed in as an argument.</p>
+<h3 id="custom-callout-factory">Custom Callout Factory</h3>
+<p>When a callout is created with <code>Callout.show()</code>, the function stored by the <a href="../api-reference/feathers/controls/Callout.html#calloutFactory"><code>Callout.calloutFactory()</code></a> property is called to instantiate a <code>Callout</code> instance. The final argument of <code>Callout.show()</code> allows you to specify a custom callout factory. This let's you customize an individual callout to be different than other callouts. For instance, let's say that a particular callout should have different skins than others. We might create a callout factory function like this:</p>
+<pre class="code"><code>function customCalloutFactory():Callout
+{
+    var callout:Callout = new Callout();
+    callout.styleNameList.add( &quot;custom-callout&quot; );
+    return callout;
+};
+Callout.show( content, origin, Callout.DIRECTION_ANY, true, customCalloutFactory );</code></pre>
+<p>If you've created a <a href="custom-themes.html">custom theme</a>, you can set a styling function for a <code>Callout</code> with the style name <code>&quot;custom-callout&quot;</code> to provide different skins for this callout.</p>
+<h2 id="skinning-a-callout">Skinning a <code>Callout</code></h2>
+<p>Callouts have a number of skin and style properties to let you customize their appearance. For full details about what skin and style properties are available, see the <a href="../api-reference/feathers/controls/Callout.html"><code>Callout</code> API reference</a>. We'll look at a few of the most common properties below.</p>
+<p>Let's look at the skins first.</p>
+<pre class="code"><code>callout.backgroundSkin = new Scale9Image( backgroundTextures );
+callout.topArrowSkin = new Image( topArrowTexture );
+callout.rightArrowSkin = new Image( rightArrowTexture );
+callout.bottomArrowSkin = new Image( bottomArrowTexture );
+callout.leftArrowSkin = new Image( leftArrowTexture );</code></pre>
+<p>The background and each of the directional arrows have separate skins. If your arrow skins need to seamlessly transition into the background while covering up part of the background's border, you might use a negative gap for each of the arrows:</p>
+<pre class="code"><code>callout.topArrowGap = callout.rightArrowGap = callout.bottomArrowGap =
+    callout.leftArrowGap = -2;</code></pre>
+<p>Speaking of borders, you can use padding styles to ensure that the callout's edges are visible around the callout's content.</p>
+<pre class="code"><code>callout.topArrowGap = 6;
+callout.rightArrowGap = 8;
+callout.bottomArrowGap = 6;
+callout.leftArrowGap = 8;</code></pre>
+<p>Finally, there are static properties for the stage's padding. These ensure that callouts are positioned a certain number of pixels away from the edge of the stage.</p>
+<pre class="code"><code>Callout.stagePaddingTop = Callout.stagePaddingRight = Callout.stagePaddingBottom =
+    Callout.stagePaddingLeft = 10;</code></pre>
+<h3 id="targeting-a-callout-in-a-theme">Targeting a <code>Callout</code> in a theme</h3>
+<p>If you are creating a <a href="themes.html">theme</a>, you can specify a function for the default styles like this:</p>
+<pre class="code"><code>getStyleProviderForClass( Callout ).defaultStyleFunction = setCalloutStyles;</code></pre>
+<p>If you want to customize a specific callout to look different than the default, you may use a custom style name to call a different function:</p>
+<pre class="code"><code>callout.styleNameList.add( &quot;custom-callout&quot; );</code></pre>
+<p>You can specify the function for the custom style name like this:</p>
+<pre class="code"><code>getStyleProviderForClass( Callout )
+    .setFunctionForStyleName( &quot;custom-callout&quot;, setCustomCalloutStyles );</code></pre>
+<p>Trying to change the callout's styles and skins outside of the theme may result in the theme overriding the properties, if you set them before the callout was added to the stage and initialized. Learn to <a href="extending-themes.html">extend an existing theme</a> to add custom skins.</p>
+<p>If you aren't using a theme, then you may set any of the callout's properties directly.</p>
+<h3 id="skinning-a-callout-without-a-theme">Skinning a <code>Callout</code> without a theme</h3>
+<p>If you're not using a theme, you can specify a factory to create the callout, including setting skins, in a couple of different ways. The first is to set the <a href="../api-reference/feathers/controls/Callout.html#calloutFactory"><code>Callout.calloutFactory</code></a> static property to a function that provides skins for the callout. This factory will be called any time that <a href="../api-reference/feathers/controls/Callout.html#show()"><code>Callout.show()</code></a> is used to create a callout.</p>
+<pre class="code"><code>function skinnedCalloutFactory():Callout
+{
+    var callout:Callout = new Callout();
+    callout.backgroundSkin = new Scale9Image( myTextures );
+    callout.topArrowSkin = new Image( myTopTexture );
+    // etc...
+    return callout;
+};
+Callout.calloutFactory = skinnedCalloutFactory;</code></pre>
+<p>Another option is to pass a callout factory to <code>Callout.show()</code>. This allows you to create a specific callout differently than the default global <code>Callout.calloutFactory</code>.</p>
+<pre class="code"><code>function skinnedCalloutFactory():Callout
+{
+    var callout:Callout = new Callout();
+    callout.backgroundSkin = new Scale9Image( myTextures );
+    callout.topArrowSkin = new Image( myTopTexture );
+    // etc...
+    return callout;
+};
+Callout.show( content, origin, directions, isModal, skinnedCalloutFactory );</code></pre>
+<p>You should generally always skin the callouts with a factory or with a theme instead of passing the skins to the <code>Callout</code> instance returned by calling <code>Callout.show()</code>. If you skin an callout after <code>Callout.show()</code> is called, it may not be positioned or sized correctly.</p>
+<h2 id="disposal">Disposal</h2>
+<p>When manually closing the callout, you may call the <a href="../api-reference/feathers/controls/Callout.html#close()"><code>close()</code></a> function and pass in <code>true</code> or <code>false</code> for the <code>dispose</code> argument.</p>
+<p>It's possible that the callout will close itself automatically. Properties like <a href="../api-reference/feathers/controls/Callout.html#closeOnTouchBeganOutside"><code>closeOnTouchBeganOutside</code></a>, <a href="../api-reference/feathers/controls/Callout.html#closeOnTouchEndedOutside"><code>closeOnTouchEndedOutside</code></a>, and <a href="../api-reference/feathers/controls/Callout.html#closeOnKeys"><code>closeOnKeys</code></a> allow this behavior to be customized.</p>
+<p>By default, when the callout closes itself, it will also dispose itself. Set the <a href="../api-reference/feathers/controls/Callout.html#disposeOnSelfClose"><code>disposeOnSelfClose</code></a> property to <code>false</code> if you intend to reuse the callout. Simply add it to the <a href="pop-ups.html"><code>PopUpManager</code></a> again to reuse it.</p>
+<p>Finally, you may want to reuse the callout's content. By default, the callout will also dispose its content when it is disposed. Set the <a href="../api-reference/feathers/controls/Callout.html#disposeContent"><code>disposeContent</code></a> property to <code>false</code> to allow your code to reuse the callout's content in another callout or elsewhere on the display list after the original callout is disposed.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/controls/Callout.html"><code>feathers.controls.Callout</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

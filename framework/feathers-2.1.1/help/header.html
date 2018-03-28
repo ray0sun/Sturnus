@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers Header component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-header-component">How to use the Feathers <code>Header</code> component</h1>
+<p>The <a href="../api-reference/feathers/controls/Header.html"><code>Header</code></a> component displays an optional title and a region on the left and right sides for extra controls (usually buttons for navigation).</p>
+<h2 id="the-basics">The Basics</h2>
+<p>First, let's create a <code>Header</code> control, give it a title, and add it to the display list.</p>
+<pre class="code"><code>var header:Header = new Header();
+header.title = &quot;Settings&quot;;
+this.addChild( header );</code></pre>
+<p>Next, we'll add a back button to the left side of the header.</p>
+<pre class="code"><code>var backButton:Button = new Button();
+backButton.label = &quot;Back&quot;;
+backButton.addEventListener( Event.TRIGGERED, backButton_triggeredHandler );
+ 
+header.leftItems = new &lt;DisplayObject&gt;[ backButton ];</code></pre>
+<p>Notice that we create our button just like we would any regular button, including adding an event listener, except we don't add it to the display list. We pass it to the <a href="../api-reference/feathers/controls/Header.html#leftItems"><code>leftItems</code></a> property in a <code>Vector.&lt;DisplayObject&gt;</code> and the header manages adding it as a child and keeping it in the header's layout.</p>
+<p>We could add additional buttons or controls to the <a href="../api-reference/feathers/controls/Header.html#rightItems"><code>rightItems</code></a> region or the <a href="../api-reference/feathers/controls/Header.html#centerItems"><code>centerItems</code></a> region, if desired.</p>
+<aside class="warn">
+Normally, the title text renderer is displayed in the center region of the <code>Header</code>. If the <code>centerItems</code> property is used, the title will be hidden. The <a href="../api-reference/feathers/controls/Header.html#titleAlign"><code>titleAlign</code></a> property, which we'll learn how to use in a moment, may be used to reposition the title on the left or right side so that it doesn't conflict with the center items.
+</aside>
+<h2 id="skinning-a-header">Skinning a <code>Header</code></h2>
+<p>A headers offers a number of properties that may be used to customize its appearance. For full details about what skin and style properties are available, see the <a href="../api-reference/feathers/controls/Header.html"><code>Header</code> API reference</a>. We'll look at a few of the most common properties below.</p>
+<p>The header has <a href="../api-reference/feathers/controls/Header.html#backgroundSkin"><code>backgroundSkin</code></a> and <a href="../api-reference/feathers/controls/Header.html#backgroundDisabledSkin"><code>backgroundDisabledSkin</code></a> properties:</p>
+<pre class="code"><code>header.backgroundSkin = new Scale9Image( textures );</code></pre>
+<p>The background stretches to fill the entire width and height of the header.</p>
+<p>By default, the header's title text renderer appears in the center. The <code>titleAlig</code> property may be set to <a href="../api-reference/feathers/controls/Header.html#TITLE_ALIGN_PREFER_LEFT"><code>Header.TITLE_ALIGN_PREFER_LEFT</code></a> to position the title on the left, if the <code>leftItems</code> property is <code>null</code>. Similarly, we can use <a href="../api-reference/feathers/controls/Header.html#TITLE_ALIGN_PREFER_RIGHT"><code>Header.TITLE_ALIGN_PREFER_RIGHT</code></a> to align the title to the right side of the header.</p>
+<p>We don't have any items on the right side of the header, so we can align the title to the right:</p>
+<pre class="code"><code>header.titleAlign = Header.TITLE_ALIGN_PREFER_RIGHT;</code></pre>
+<p>Similar to many Feathers components, the <code>Header</code> provides <a href="../api-reference/feathers/controls/Header.html#gap"><code>gap</code></a> and various padding values for layouts.</p>
+<pre class="code"><code>header.gap = 10;
+header.paddingTop = 15;
+header.paddingRight = 20;
+header.paddingBottom = 15;
+header.paddingLeft = 20;</code></pre>
+<p>If all four padding values should be the same, you may use the <a href="../api-reference/feathers/controls/Header.html#padding"><code>padding</code></a> property to set them all at once:</p>
+<pre class="code"><code>header.padding = 20;</code></pre>
+<h4 id="styling-a-headers-title-text-renderer">Styling a Header's title text renderer</h4>
+<p>You can customize the header's title <a href="text-renderers.html">text renderer</a> in two ways. You might create a custom <a href="../api-reference/feathers/controls/Header.html#titleFactory"><code>titleFactory</code></a>:</p>
+<pre class="code"><code>header.titleFactory = function():ITextRenderer
+{
+    var titleRenderer:BitmapFontTextRenderer = new BitmapFontTextRenderer();
+ 
+    //styles here
+    titleRenderer.textFormat = new BitmapFontTextFormat( bitmapFont );
+ 
+    return titleRenderer;
+}</code></pre>
+<p>Alternatively, you can pass in the title's styles through the header's <a href="../api-reference/feathers/controls/Header.html#titleProperties"><code>titleProperties</code></a> property:</p>
+<pre class="code"><code>header.titleProperties.textFormat = new BitmapFontTextFormat( bitmapFont );</code></pre>
+<p>In general, you should only pass skins to the header's title text renderer with <code>titleProperties</code> if you need to change styles after the text renderer is created. Using <code>titleFactory</code> will provide slightly better performance, and your development environment will be able to provide code hinting thanks to stronger typing.</p>
+<h3 id="targeting-a-header-in-a-theme">Targeting a <code>Header</code> in a theme</h3>
+<p>If you are creating a <a href="themes.html">theme</a>, you can set a function for the default styles like this:</p>
+<pre class="code"><code>getStyleProviderForClass( Header ).defaultStyleFunction = setHeaderStyles;</code></pre>
+<p>If you want to customize a specific header to look different than the default, you may use a custom style name to call a different function:</p>
+<pre class="code"><code>header.styleNameList.add( &quot;custom-header&quot; );</code></pre>
+<p>You can set the function for the custom style name like this:</p>
+<pre class="code"><code>getStyleProviderForClass( Header )
+    .setFunctionForStyleName( &quot;custom-header&quot;, setCustomHeaderStyles );</code></pre>
+<p>Trying to change the header's styles and skins outside of the theme may result in the theme overriding the properties, if you set them before the header was added to the stage and initialized. Learn to <a href="extending-themes.html">extend an existing theme</a> to add custom skins.</p>
+<p>If you aren't using a theme, then you may set any of the header's properties directly.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/controls/Header.html"><code>feathers.controls.Header</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers Scale3Image display object - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-scale3image-display-object">How to use the Feathers <code>Scale3Image</code> display object</h1>
+<p>The <a href="../api-reference/feathers/display/Scale3Image.html"><code>Scale3Image</code></a> class displays a texture divided into three regions, either horizontally or vertically. When the direction of a <code>Scale3Image</code> is horizontal and the width is changed, the left and right regions will not scale and the center region will scale horizontally. When the direction of a <code>Scale3Image</code> is vertical, the top and bottom regions will not scale and the center region will scale vertically. This display object allows you to create skins with &quot;pill&quot; shapes for UI components like buttons, and sub-components like thumbs and tracks on scroll bars and sliders.</p>
+<h2 id="regions">Regions</h2>
+<p><img src="images/scale3.png" /></p>
+<p>The image above shows two ways to divide a &quot;pill&quot; shape into three regions. The two lines on each shape show where the image is sliced. The exact pixel location of these &quot;slices&quot; are easily configurable, as you will see later.</p>
+<p>The image below uses arrows to show how each of the regions will scale. Some regions will not scale. Some will scale only in one direction, horizontally or vertically.</p>
+<p><img src="images/scale3-arrows.png" /></p>
+<p>From this point forward, each region will be named by its horizontal or vertical position. Horizontal positions are &quot;left&quot;, &quot;center&quot;, and &quot;right&quot;. Vertical positions are &quot;top&quot;, &quot;middle&quot;, and &quot;bottom&quot;.</p>
+<p>The top, bottom, left, and right regions (the &quot;caps&quot; of the pill shape) will not be scaled.</p>
+<p>The center region will scale horizontally. It will not scale vertically.</p>
+<p>The middle region will scale vertically. It will not scale horizontally.</p>
+<h3 id="scaling-in-the-opposite-direction">Scaling in the Opposite Direction</h3>
+<p><a href="../api-reference/feathers/display/Scale3Image.html"><code>Scale3Image</code></a> is designed to mainly scale in one direction. However, it is capable of scaling in the other direction too. In this situation, the &quot;caps&quot; will scale to maintain aspect ratio. As an example, if a cap is a half circle, it will remain perfectly round after scaling in both directions. The goal is to avoid distortion of the caps.</p>
+<p><img src="images/scale3-both.png" /></p>
+<p>The image above shows how the caps maintain aspect ratio when scaled in the opposite direction.</p>
+<h2 id="the-grid">The Grid</h2>
+<p>Two numeric values defines the <em>grid</em>. Actually, these specifically defines the center or middle region described above. Each of the other regions can be automatically calculated using these values along with the original width and height of the texture.</p>
+<p>The horizontal orange pill shape pictured above is <code>200</code> pixels wide and <code>80</code> pixels tall. Using the lines in the picture, we'll define the grid. The x value is <code>40</code>. The width value is <code>120</code> pixels.</p>
+<pre class="code"><code>40 + 120 + 40 = 200</code></pre>
+<p>It works similarly for a vertical pill shape, except the two values represent y and height.</p>
+<p>The left and right regions don't necessarily need to be the same size. Neither do the top and bottom regions. However, for pill shapes, it will often be the case that these regions are the same size.</p>
+<h2 id="code">Code</h2>
+<p>First, let's create a <a href="../api-reference/feathers/textures/Scale3Textures.html"><code>feathers.textures.Scale3Textures</code></a> object:</p>
+<pre class="code"><code>var texture:Texture = Texture.fromBitmapData( bitmapData );
+var textures:Scale3Textures = new Scale3Textures( texture, 40, 120, Scale3Textures.DIRECTION_HORIZONTAL );</code></pre>
+<p>This object is created from a standard <a href="http://doc.starling-framework.org/core/starling/textures/Texture.html"><code>starling.textures.Texture</code></a> object, the two region values, and the constant representing the direction of the regions. Either <a href="../api-reference/feathers/textures/Scale3Textures.html#DIRECTION_HORIZONTAL"><code>Scale3Textures.DIRECTION_HORIZONTAL</code></a> or <a href="../api-reference/feathers/textures/Scale3Textures.html#DIRECTION_VERTICAL"><code>Scale3Textures.DIRECTION_VERTICAL</code></a>.</p>
+<p>We'll pass the <code>Scale3Textures</code> object to a new <a href="../api-reference/feathers/display/Scale3Image.html"><code>feathers.display.Scale3Image</code></a> object:</p>
+<pre class="code"><code>var image:Scale3Image = new Scale3Image( textures );
+image.width = 100;
+this.addChild( image );</code></pre>
+<p>You can easily change the <code>width</code> property for horizontal <code>Scale3Image</code> objects (or the <code>height</code> property for vertical images), and the regions will scale appropriately, as described above.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/display/Scale3Image.html"><code>feathers.display.Scale3Image</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

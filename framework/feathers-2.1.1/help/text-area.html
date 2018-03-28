@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers TextArea component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-textarea-component">How to use the Feathers <code>TextArea</code> Component</h1>
+<p>The <a href="../api-reference/feathers/controls/TextArea.html"><code>TextArea</code></a> class supports the editing of multiline, uniformly-formatted text.</p>
+<aside class="info">
+<code>TextArea</code> is designed specifically for desktop apps, and it is <em>not</em> recommended for use in mobile touchscreen apps. Instead, on mobile, you should use a <a href="text-input.html"><code>TextInput</code></a> component with a <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html"><code>StageTextTextEditor</code></a> with its <a href="../api-reference/feathers/controls/text/StageTextTextEditor.html#multiline"><code>multiline</code></a> property set to <code>true</code>. The underlying <code>StageText</code> will provide its own native scroll bar.
+</aside>
+<h2 id="the-basics">The Basics</h2>
+<p>First, let's create a <code>TextArea</code> control and add it to the display list:</p>
+<pre class="code"><code>var textArea:TextArea = new TextArea();
+this.addChild( textArea );</code></pre>
+<h3 id="changing-text-programmatically">Changing text programmatically</h3>
+<p>Text may be changed programatically by setting the <a href="../api-reference/feathers/controls/TextArea.html#text"><code>text</code></a> property:</p>
+<pre class="code"><code>textArea.text = &quot;Hello\nWorld&quot;;</code></pre>
+<h3 id="focus-and-selection">Focus and Selection</h3>
+<p>You may programmatically set focus to the text area by calling <a href="../api-reference/feathers/controls/TextArea.html#setFocus()"><code>setFocus()</code></a>:</p>
+<pre class="code"><code>textArea.setFocus();</code></pre>
+<p>You can select part of the text too:</p>
+<pre class="code"><code>textArea.selectRange(0, textArea.text.length);</code></pre>
+<p>If you simply want to set the position of the cursor, you can omit the second argument to <a href="../api-reference/feathers/controls/TextArea.html#selectRange()"><code>selectRange()</code></a>:</p>
+<pre class="code"><code>textArea.selectRange(0);</code></pre>
+<h3 id="events">Events</h3>
+<p>Text areas provide some useful events. One of the most common requirements is knowing, in real time, when the value of the <a href="../api-reference/feathers/controls/TextArea.html#text"><code>text</code></a> property has changed:</p>
+<pre class="code"><code>textArea.addEventListener( Event.CHANGE, textArea_changeHandler );</code></pre>
+<p>We can listen for <a href="../api-reference/feathers/controls/TextArea.html#event:change"><code>Event.CHANGE</code></a>.</p>
+<p>You might also want to know when the text area receives and loses focus:</p>
+<pre class="code"><code>textArea.addEventListener( FeathersEventType.FOCUS_IN, textArea_focusInHandler );
+textArea.addEventListener( FeathersEventType.FOCUS_OUT, textArea_focusOutHandler );</code></pre>
+<p>The <a href="../api-reference/feathers/controls/TextArea.html#event:focusIn"><code>FeathersEventType.FOCUS_IN</code></a> and <a href="../api-reference/feathers/controls/TextArea.html#event:focusOut"><code>FeathersEventType.FOCUS_OUT</code></a> events are specially dispatched by the <code>TextArea</code>, even if the <a href="focus.html">focus manager</a> is not enabled.</p>
+<h2 id="customizing-input-behavior">Customizing Input Behavior</h2>
+<p>Several properties allow you to customize a text area's behavior.</p>
+<p>Set the <a href="../api-reference/feathers/controls/TextArea.html#isEditable"><code>isEditable</code></a> property to false to make the text uneditable, without giving the text area a disabled appearance:</p>
+<pre class="code"><code>textArea.isEditable = false;</code></pre>
+<p>To limit the number of characters that may be entered, use the <a href="../api-reference/feathers/controls/TextArea.html#maxChars"><code>maxChars</code></a> property:</p>
+<pre class="code"><code>textArea.maxChars = 16;</code></pre>
+<p>The <a href="../api-reference/feathers/controls/TextArea.html#restrict"><code>restrict</code></a> property limits the set of characters that can be entered into the text area. It works like the <code>restrict</code> property on <code>flash.text.TextField</code>.</p>
+<pre class="code"><code>textArea.restrict = &quot;0-9&quot;;</code></pre>
+<p>In the example above, we restrict to numeric values only.</p>
+<h2 id="skinning-a-textarea">Skinning a <code>TextArea</code></h2>
+<p>A text area provides a number of properties to customize its appearance. For full details about what skin and style properties are available, see the <a href="../api-reference/feathers/controls/TextArea.html"><code>TextArea</code> API reference</a>. We'll look at a few of the most common properties below.</p>
+<h3 id="font-styles">Font Styles</h3>
+<p>The font styles of a text area may be changed through the <a href="text-editors.html">text editor view port</a>. Each text editor displays fonts differently and has different properties, so the way to make changes to the font styles depends on each text editor.</p>
+<p>Currently, Feathers comes with only one text editor view port, <a href="../api-reference/feathers/controls/text/TextFieldTextEditorViewPort.html"><code>TextFieldTextEditorViewPort</code></a>, but it's possible to create custom implementations to replace it.</p>
+<p><code>TextFieldTextEditorViewPort</code> places a <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html"><code>flash.text.TextField</code></a> with its <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html#type"><code>type</code></a> property set to <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFieldType.html#INPUT"><code>TextFieldType.INPUT</code></a> on the native stage. This text editor accepts a <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html"><code>flash.text.TextFormat</code></a> object to pass to the <code>TextField</code> to style the text.</p>
+<p>The text editor may be styled using the <a href="../api-reference/feathers/controls/TextArea.html#textEditorFactory"><code>textEditorFactory</code></a>:</p>
+<pre class="code"><code>textArea.textEditorFactory = function():ITextEditorViewPOrt
+{
+    var editor:TextFieldTextEditorViewPort = new TextFieldTextEditorViewPort();
+    editor.textFormat = new TextFormat( &quot;_sans&quot;, 12, 0x333333 );
+    return editor;
+}</code></pre>
+<p>You may also pass properties to the text editor through <a href="../api-reference/feathers/controls/TextArea.html#textEditorProperties"><code>textEditorProperties</code></a>:</p>
+<pre class="code"><code>textArea.textEditorProperties.textFormat = new TextFormat( &quot;_sans&quot;, 12, 0x333333 );</code></pre>
+<p>Using the <code>textEditorProperties</code> hash is a bit slower, so if the font styles do not change, you should always use the <code>textEditorFactory</code>. The <code>textEditorProperties</code> is best for when the font styles change after the editor is initially created.</p>
+<h3 id="background-and-layout">Background and Layout</h3>
+<p>In addition to changing font styles on the text editor, you can change the text area's background skin and padding. Text area has three separate background skins, but two of them are optional.</p>
+<pre class="code"><code>textArea.backgroundSkin = new Scale9Image( backgroundSkinTextures );
+textArea.backgroundDisabledSkin = new Scale9Image( disabledBackgroundSkinTextures );
+textArea.backgroundFocusedSkin = new Scale9Image( focusedBackgroundSkinTextures );</code></pre>
+<p>The default <a href="../api-reference/feathers/controls/Scroller.html#backgroundSkin"><code>backgroundSkin</code></a> is displayed when the text area doesn't have focus and is enabled. The <a href="../api-reference/feathers/controls/Scroller.html#backgrounDisabledSkin"><code>backgroundDisabledSkin</code></a> is displayed when the text area is not enabled, but if you don't provide a disabled background skin, the default background skin will be used. Similarly, the <a href="../api-reference/feathers/controls/TextArea.html#backgroundFocusedSkin"><code>backgroundFocusedSkin</code></a> is displayed when the text area has focus. Again, text area will fall back to the default background skin if there is no focused background skin.</p>
+<p>You can change the padding values on each side:</p>
+<pre class="code"><code>textArea.paddingTop = 10;
+textArea.paddingRight = 10;
+textArea.paddingBottom = 10;
+textArea.paddingLeft = 10;</code></pre>
+<p>The dimensions of the text editor will be affected by the padding to show more of the background skin around the edges. This can allow you to reveal a border.</p>
+<h3 id="targeting-a-textarea-in-a-theme">Targeting a <code>TextArea</code> in a theme</h3>
+<p>If you are creating a <a href="themes.html">theme</a>, you can set a function for the default styles like this:</p>
+<pre class="code"><code>getStyleProviderForClass( TextArea ).defaultStyleFunction = setTextAreaStyles;</code></pre>
+<p>If you want to customize a specific text area to look different than the default, you may use a custom style name to call a different function:</p>
+<pre class="code"><code>textArea.styleNameList.add( &quot;custom-text-area&quot; );</code></pre>
+<p>You can set the function for the custom style name like this:</p>
+<pre class="code"><code>getStyleProviderForClass( TextArea )
+    .setFunctionForStyleName( &quot;custom-text-area&quot;, setCustomTextAreaStyles );</code></pre>
+<p>Trying to change the text area's styles and skins outside of the theme may result in the theme overriding the properties, if you set them before the text area was added to the stage and initialized. Learn to <a href="extending-themes.html">extend an existing theme</a> to add custom skins.</p>
+<p>If you aren't using a theme, then you may set any of the text area's properties directly.</p>
+<h3 id="skinning-the-scroll-bars">Skinning the Scroll Bars</h3>
+<p>This section only explains how to access the horizontal scroll bar and vertical scroll bar sub-components. Please read <a href="scroll-bar.html">How to use the Feathers <code>ScrollBar</code> component</a> (or <a href="simple-scroll-bar.html"><code>SimpleScrollBar</code></a>) for full details about the skinning properties that are available on scroll bar components.</p>
+<h4 id="with-a-theme">With a Theme</h4>
+<p>If you're creating a <a href="themes.html">theme</a>, you can target the <a href="../api-reference/feathers/controls/Scroller.html#DEFAULT_CHILD_STYLE_NAME_HORIZONTAL_SCROLL_BAR"><code>Scroller.DEFAULT_CHILD_STYLE_NAME_HORIZONTAL_SCROLL_BAR</code></a> style name for the horizontal scroll bar and the <a href="../api-reference/feathers/controls/Scroller.html#DEFAULT_CHILD_STYLE_NAME_VERTICAL_SCROLL_BAR"><code>Scroller.DEFAULT_CHILD_STYLE_NAME_VERTICAL_SCROLL_BAR</code></a> style name for the vertical scroll bar.</p>
+<pre class="code"><code>getStyleProviderForClass( ScrollBar )
+    .setFunctionForStyleName( Scroller.DEFAULT_CHILD_STYLE_NAME_HORIZONTAL_SCROLL_BAR, setHorizontalScrollBarStyles );
+getStyleProviderForClass( ScrollBar )
+    .setFunctionForStyleName( Scroller.DEFAULT_CHILD_STYLE_NAME_VERTICAL_SCROLL_BAR, setVerticalScrollBarStyles );</code></pre>
+<p>You can override the default style names to use different ones in your theme, if you prefer:</p>
+<pre class="code"><code>textArea.customHorizontalScrollBarStyleName = &quot;custom-horizontal-scroll-bar&quot;;
+textArea.customVerticalScrollBarStyleName = &quot;custom-vertical-scroll-bar&quot;;</code></pre>
+<p>You can set the funciton for the <a href="../api-reference/feathers/controls/Scroller.html#customHorizontalScrollBarStyleName"><code>customHorizontalScrollBarStyleName</code></a> and the <a href="../api-reference/feathers/controls/Scroller.html#customVerticalScrollBarStyleName"><code>customVerticalScrollBarStyleName</code></a> like this:</p>
+<pre class="code"><code>getStyleProviderForClass( ScrollBar )
+    .setFunctionForStyleName( &quot;custom-horizontal-scroll-bar&quot;, setCustomHorizontalScrollBarStyles );
+getStyleProviderForClass( ScrollBar )
+    .setFunctionForStyleName( &quot;custom-vertical-scroll-bar&quot;, setCustomVerticalScrollBarStyles );</code></pre>
+<h4 id="without-a-theme">Without a Theme</h4>
+<p>If you are not using a theme, you can use <a href="../api-reference/feathers/controls/Scroller.html#horizontalScrollBarFactory"><code>horizontalScrollBarFactory</code></a> and <a href="../api-reference/feathers/controls/Scroller.html#verticalScrollBarFactory"><code>verticalScrollBarFactory</code></a> to provide skins for the text area's scroll bars:</p>
+<pre class="code"><code>textArea.horizontalScrollBarFactory = function():ScrollBar
+{
+    var scrollBar:ScrollBar = new ScrollBar();
+    scrollBar.direction = ScrollBar.DIRECTION_HORIZONTAL;
+    //skin the scroll bar here
+    scrollBar.trackLayoutMode = ScrollBar.TRACK_LAYOUT_MODE_SINGLE;
+    return scrollBar;
+}</code></pre>
+<p>Alternatively, or in addition to the <code>horizontalScrollBarFactory</code> and <code>verticalScrollBarFactory</code>, you may use the <a href="../api-reference/feathers/controls/Scroller.html#horizontalScrollBarProperties"><code>horizontalScrollBarProperties</code></a> and the <a href="../api-reference/feathers/controls/Scroller.html#verticalScrollBarProperties"><code>verticalScrollBarProperties</code></a> to pass skins to the scroll bars.</p>
+<pre class="code"><code>textArea.horizontalScrollBarProperties.trackLayoutMode = ScrollBar.TRACK_LAYOUT_MODE_SINGLE;</code></pre>
+<p>In general, you should only pass skins to the text area's scroll bars through <code>horizontalScrollBarProperties</code> and <code>verticalScrollBarProperties</code> if you need to change skins after the scroll bar is created. Using <code>horizontalScrollBarFactory</code> and <code>verticalScrollBarFactory</code> will provide slightly better performance, and your development environment will be able to provide code hinting thanks to stronger typing.</p>
+<h2 id="customizing-scrolling-behavior">Customizing Scrolling Behavior</h2>
+<p>A number of properties are available to customize scrolling behavior and the scroll bars.</p>
+<h3 id="interaction-modes">Interaction Modes</h3>
+<p>Scrolling containers provide two main interaction modes, which can be changed using the <a href="../api-reference/feathers/controls/Scroller.html#interactionMode"><code>interactionMode</code></a> property.</p>
+<p>By default, you can scroll using touch, just like you would on many mobile devices including smartphones and tablets. This mode allows you to grab the panel anywhere within its bounds and drag it around to scroll. This mode is defined by the constant, <a href="../api-reference/feathers/controls/Scroller.html#INTERACTION_MODE_TOUCH"><code>INTERACTION_MODE_TOUCH</code></a>.</p>
+<p>Alternatively, you can set <code>interactionMode</code> to <a href="../api-reference/feathers/controls/Scroller.html#INTERACTION_MODE_MOUSE"><code>INTERACTION_MODE_MOUSE</code></a>. This mode allows you to scroll using the horizontal or vertical scroll bar sub-components. You can also use the mouse wheel to scroll vertically.</p>
+<h3 id="scroll-bar-display-mode">Scroll Bar Display Mode</h3>
+<p>The <a href="../api-reference/feathers/controls/Scroller.html#scrollBarDisplayMode"><code>scrollBarDisplayMode</code></a> property controls how and when scroll bars are displayed. This value may be overridden by the scroll policy, as explained below.</p>
+<p>The default value is <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_BAR_DISPLAY_MODE_FLOAT"><code>SCROLL_BAR_DISPLAY_MODE_FLOAT</code></a>, which displays the scroll bars above the view port's content, rather than affecting the size of the view port. When the scroll bars are floating, they fade out when the panel is not actively scrolling. This is a familiar behavior for scroll bars in the touch interaction mode. In the mouse interaction mode, the scroll bars will appear when the mouse hovers over them and then disappear when the hover ends.</p>
+<p>To completely hide the scroll bars, but still allow scrolling, you can set <code>scrollBarDisplayMode</code> to <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_BAR_DISPLAY_MODE_NONE"><code>SCROLL_BAR_DISPLAY_MODE_NONE</code></a>.</p>
+<p>Finally, if you want the scroll bars to always be visible outside of the content in a fixed position, you can set <code>scrollBarDisplayMode</code> to <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_BAR_DISPLAY_MODE_FIXED"><code>SCROLL_BAR_DISPLAY_MODE_FIXED</code></a>. This is best for traditional desktop scrollable content.</p>
+<h3 id="scroll-policies">Scroll Policies</h3>
+<p>The two previous properties control how scrolling works. The <a href="../api-reference/feathers/controls/Scroller.html#horizontalScrollPolicy"><code>horizontalScrollPolicy</code></a> and <a href="../api-reference/feathers/controls/Scroller.html#verticalScrollPolicy"><code>verticalScrollPolicy</code></a> properties control whether scrolling is enabled or not.</p>
+<p>The default scroll policy for both directions is <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_POLICY_AUTO"><code>SCROLL_POLICY_AUTO</code></a>. If the content's width is greater than the view port's width, the panel may scroll horizontally (same for height and vertical scrolling). If not, then the panel will not scroll in that direction. In addition to the <code>scrollBarDisplayMode</code>, this can affect whether the scroll bar is visible or not.</p>
+<p>You can completely disable scrolling in either direction, set the scroll policy to <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_POLICY_OFF"><code>SCROLL_POLICY_OFF</code></a>. The scroll bar will not be visible, and the panel won't scroll, even if the content is larger than the view port.</p>
+<p>Finally, you can ensure that scrolling is always enabled by setting the scroll policy to <a href="../api-reference/feathers/controls/Scroller.html#SCROLL_POLICY_ON"><code>SCROLL_POLICY_ON</code></a>. If combined with <code>hasElasticEdges</code> in the touch interaction mode, it will create a playful edge that always bounces back, even when the content is smaller than the view port. If using the mouse interaction mode, the scroll bar may always be visible under the same circumstances, though it may be disabled if the content is smaller than the view port.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="../api-reference/feathers/controls/TextArea.html"><code>feathers.controls.TextArea</code> API Documentation</a></p></li>
+<li><p><a href="text-input.html">How to Use the Feathers <code>TextInput</code> Component</a></p></li>
+<li><p><a href="text-editors.html">Introduction to Feathers Text Editors</a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

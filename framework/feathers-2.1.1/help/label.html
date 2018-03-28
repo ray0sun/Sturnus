@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers Label component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-label-component">How to use the Feathers <code>Label</code> component</h1>
+<p>The <a href="../api-reference/feathers/controls/Label.html"><code>Label</code></a> component is for displaying text. It uses a <a href="text-renderers.html">text renderer</a>.</p>
+<h3 id="the-basics">The Basics</h3>
+<p>First, let's create a <code>Label</code> control, give it some text to display, and add it to the display list:</p>
+<pre class="code"><code>var label:Label = new Label();
+label.text = &quot;Hello World&quot;;
+this.addChild( label );</code></pre>
+<h2 id="styling-the-label">Styling the <code>Label</code></h2>
+<p>For full details about what skin and style properties are available, see the <a href="../api-reference/feathers/controls/Label.html"><code>Label</code> API reference</a>. We'll look at a few of the most common properties below.</p>
+<h3 id="styling-the-text-renderer">Styling the Text Renderer</h3>
+<p>This section explains how to customize the <a href="text-renderers.html">text renderer</a> sub-component. Feathers provides multiple text renderers to choose from, and each one will have different properties that may be set to customize font styles and other capabilities. For more information about text renderers, including which ones are available, please read <a href="text-renderers.html">Introduction to Feathers Text Renderers</a>.</p>
+<p>If you are not using a theme, you can use <a href="../api-reference/feathers/controls/Label.html#textRendererFactory"><code>textRendererFactory</code></a> to provide styles for the label's text renderer:</p>
+<pre class="code"><code>label.textRendererFactory = function():ITextRenderer
+{
+    var textRenderer:BitmapFontTextRenderer = new BitmapFontTextRenderer();
+    textRenderer.textFormat = new BitmapFontTextFormat( myPixelFont );
+    textRenderer.smoothing = TextureSmoothing.NONE;
+    return textRenderer;
+}</code></pre>
+<p>In the example above, we provide styles for a <a href="../api-reference/feathers/controls/text/BitmapFontTextRenderer.html"><code>BitmapFontTextRenderer</code></a>. The styles for another text renderer, like <a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html"><code>TextBlockTextRenderer</code></a>, will be different:</p>
+<pre class="code"><code>label.textRendererFactory = function():ITextRenderer
+{
+    var textRenderer:TextFieldTextRenderer = new TextFieldTextRenderer();
+    textRenderer.textFormat = new TextFormat( &quot;Arial&quot;, 24, 0x323232 );
+    textRenderer.embedFonts = true;
+    textRenderer.isHTML = true;
+    return textRenderer;
+}</code></pre>
+<p>It is best to look at the API documentation for the specific text renderer that you are using to see what capabilities it exposes. Each has its own advantages and disadvantages.</p>
+<p>Alternatively, or in addition to the <code>textRendererFactory</code>, you may use <a href="../api-reference/feathers/controls/Label.html#textRendererProperties"><code>textRendererProperties</code></a> to pass styles to the text renderer.</p>
+<pre class="code"><code>label.textRendererProperties.textFormat = new BitmapFontTextFormat( myPixelFont );
+label.textRendererProperties.smoothing = TextureSmoothing.NONE;</code></pre>
+<p>Again, this example styles the properties of a <code>BitmapFontTextRenderer</code>. Other text renderers may have completely different properties, and you should check the API documentation for full details.</p>
+<p>In general, you should only style the label's text renderer through <code>textRendererProperties</code> if you need to change skins after the thumb is created. Using <code>textRendererFactory</code> will provide slightly better performance, and your development environment will be able to provide code hinting thanks to stronger typing.</p>
+<h3 id="targeting-a-label-in-a-theme">Targeting a <code>Label</code> in a theme</h3>
+<p>If you are creating a <a href="themes.html">theme</a>, you can set a function for the default styles like this:</p>
+<pre class="code"><code>getStyleProviderForClass( Label ).defaultStyleFunction = setLabelStyles;</code></pre>
+<p>If you want to customize a specific label to look different than the default, you may use a custom style name to call a different function:</p>
+<pre class="code"><code>label.styleNameList.add( &quot;custom-label&quot; );</code></pre>
+<p>You can set the function for the custom style name like this:</p>
+<pre class="code"><code>getStyleProviderForClass( Label )
+    .setFunctionForStyleName( &quot;custom-label&quot;, setCustomLabelStyles );</code></pre>
+<p>Trying to change the label's styles and skins outside of the theme may result in the theme overriding the properties, if you set them before the label was added to the stage and initialized. Learn to <a href="extending-themes.html">extend an existing theme</a> to add custom skins.</p>
+<p>If you aren't using a theme, then you may set any of the label's properties directly.</p>
+<h2 id="commentary">Commentary</h2>
+<p>Why not just instantiate a <a href="text-renderers.html">text renderer</a>, such as <code>BitmapFontTextRenderer</code>, directly instead of using <code>Label</code>? The <code>Label</code> component exists to help you abstract the choice of a text renderer away from your core application. For instance, this allows you to easily switch between <a href="themes.html">themes</a> that have different text renderers. You can also refactor a theme more easily if you decide that you're prefer to use a different text renderer than the one that you originally selected. If you simply instantiated a text renderer directly whenever you needed to display some text, you'd need to make changes to many classes throughout your project.</p>
+<p>Generally, all of the Feathers example apps use <code>Label</code> for generic text, and you can easily modify their <code>Main</code> class to switch to any of the example themes that are included with Feathers. The theme will automatically select an appropriate text renderer and set matching font styles for any <code>Label</code> component that it encounters.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="../api-reference/feathers/controls/Label.html"><code>feathers.controls.Label</code> API Documentation</a></p></li>
+<li><p><a href="text-renderers.html">Introduction to Feathers Text Renderers</a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

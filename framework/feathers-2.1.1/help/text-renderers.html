@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>Introduction to Feathers text renderers - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="introduction-to-feathers-text-renderers">Introduction to Feathers text renderers</h1>
+<p>There are muliple different approaches to displaying text on the GPU, each with advantages and disadvantages. None of these approaches are ultimately better than the others. With that in mind, when Feathers needs to display text in a component, it provides APIs to allow you to choose the appropriate <em>text renderer</em> based on your project's requirements.</p>
+<p>Different text renderers may be more appropriate for some situations than others. You should keep a number of factors in mind when choosing a text renderer, including (but not necessarily limited to) the following:</p>
+<ul>
+<li><p>the length of the text</p></li>
+<li><p>how often the text changes</p></li>
+<li><p>the language of the text that needs to be displayed</p></li>
+</ul>
+<p>These factors may impact things like performance and memory usage, depending on which text renderer that you choose. Since you can mix and match text renderers among different components within a single scene, you have the ability to fine-tune the entire scene for the best results. One component may perform best with one text renderer while another right next to it is better off with a different text renderer.</p>
+<p>Feathers provides three different text renderers. We'll learn the capabilities of each, along with their advantages and disadvantages. These text renderers are listed below:</p>
+<ul>
+<li><p><a href="../api-reference/feathers/controls/text/BitmapFontTextRenderer.html"><code>BitmapFontTextRenderer</code></a> uses <a href="http://wiki.starling-framework.org/manual/displaying_text#bitmap_fonts">bitmap fonts</a> to display characters as separate textured quads.</p></li>
+<li><p><a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html"><code>TextBlockTextRenderer</code></a> uses <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/TextBlock.html"><code>flash.text.engine.TextBlock</code></a> to render text in software and the result is drawn to <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/BitmapData.html"><code>BitmapData</code></a> and uploaded as a texture to the GPU.</p></li>
+<li><p><a href="../api-reference/feathers/controls/text/TextFieldTextRenderer.html"><code>TextFieldTextRenderer</code></a> uses <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html"><code>flash.text.TextField</code></a> to render text in software and the result is drawn to <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/BitmapData.html"><code>BitmapData</code></a> and uploaded as a texture to the GPU.</p></li>
+</ul>
+<p>We'll look at the capabilities of each text renderer in more detail a bit later, and we'll even consider options for creating custom text renderers.</p>
+<h2 id="the-default-text-renderer-factory">The default text renderer factory</h2>
+<p>In many cases, most of the components in your app will use the same type of text renderer. To keep from repeating yourself by passing the same factory (a function that creates the text renderer) to each component separately, you can specify a global <em>default text renderer factory</em> to tell all Feathers components in your app how to create a new text renderer. Then, if some of your components need a different text renderer, you can pass them a separate factory that will override the default one.</p>
+<p>By default, the default text renderer factory returns a <a href="../api-reference/feathers/controls/text/BitmapFontTextRenderer.html"><code>BitmapFontTextRenderer</code></a> that renders bitmap fonts. For games, one of the primary targets for Starling and Feathers, bitmap fonts are often a good choice because they tend to display shorter strings that change a lot.</p>
+<p>However, when using a <a href="themes.html">theme</a>, you should check which text renderer is selected as the default. Themes will often embed a custom font, and it is completely up to the theme which text renderer it wants to use to render that font. Many of the Feathers example apps use vector fonts to easily support many different languages and text styles.</p>
+<p>When an individual component doesn't have a custom text renderer factory specified, it calls the function <a href="../api-reference/feathers/core/FeathersControl.html#defaultTextRendererFactory()"><code>FeathersControl.defaultTextRendererFactory()</code></a>. The label of a <a href="button.html"><code>Button</code></a> text, the title of a <a href="header.html"><code>Header</code></a> title, and the on and off labels of a <a href="toggle-switch.html"><code>ToggleSwitch</code></a> are all examples of places where the default text renderer will be used if a custom text renderer is not specified.</p>
+<p><a href="../api-reference/feathers/core/FeathersControl.html#defaultTextRendererFactory"><code>FeathersControl.defaultTextRendererFactory</code></a> is a static variable that may be changed to a different function, as needed. The default implementation of this function looks like this:</p>
+<pre class="code"><code>function():ITextRenderer
+{
+    return new BitmapFontTextRenderer();
+}</code></pre>
+<p>If you would prefer to use a different text renderer as the default in your app, you can easily change the variable to point to a different function. For instance, you might want to add this code to your application to use the <a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html"><code>TextBlockTextRenderer</code></a> instead:</p>
+<pre class="code"><code>FeathersControl.defaultTextRendererFactory = function():ITextRenderer
+{
+    return new TextBlockTextRenderer();
+};</code></pre>
+<h2 id="using-a-different-text-renderer-on-an-individual-component">Using a different text renderer on an individual component</h2>
+<p>You can tell a specific UI control not to use the default text renderer. For instance, on a <a href="button.html"><code>Button</code></a>, you can pass in a <a href="../api-reference/feathers/controls/Button.html#labelFactory"><code>labelFactory</code></a> that will be used to create the button's label text renderer:</p>
+<pre class="code"><code>button.labelFactory = function():ITextRenderer
+{
+    return new TextFieldTextRenderer();
+}</code></pre>
+<p>You can even apply font styles and other properties in the factory before returning the text renderer:</p>
+<pre class="code"><code>button.labelFactory = function():ITextRenderer
+{
+    var textRenderer:TextFieldTextRenderer = new TextFieldTextRenderer();
+    textRenderer.textFormat = new TextFormat( &quot;Source Sans Pro&quot;, 16, 0xffffff );
+    textRenderer.embedFonts = true;
+    return textRenderer;
+}</code></pre>
+<p>Be careful, if you're using a theme. The theme applies its styles after this function returns. That means that the theme may end up replacing any properties that you set in the factory. See <a href="extending-themes.html">Extending Feathers Themes</a> for details about how to customize an existing theme's styles.</p>
+<p>Other components with the ability to display text may have a different name for their text renderer factories. For example, the factory for the title text renderer of a <a href="header.html"><code>Header</code></a> component is called <a href="../api-reference/feathers/controls/Header.html#titleFactory"><code>titleFactory</code></a>. Check the <a href="../api-reference/">API reference</a> for a specific component to learn the names of any properties that allow you to change the factories for its text renderers.</p>
+<h2 id="the-label-component">The Label Component</h2>
+<p>The <a href="label.html"><code>Label</code></a> component is a component designed strictly to display text and only text. It's not a text renderer, but it has one child, and that child is a text renderer. In general, if you're looking for a Feathers component to display arbitrary text, you want a <code>Label</code>. Maybe you want to display a score in a game, or to label or form field, or perhaps to display a small paragraph of text to provide some instructions. That's what <code>Label</code> is for.</p>
+<p>Why not just instantiate a text renderer, such as <a href="../api-reference/feathers/controls/text/BitmapFontTextRenderer.html"><code>BitmapFontTextRenderer</code></a>, directly? The <code>Label</code> component exists to help you abstract the choice of a text renderer away from your core application. For instance, it allows you to easily switch to a different <a href="themes.html">themes</a> that has different text renderers. You can also refactor a theme more easily if you decide that you're prefer to use a different text renderer than the one that you originally selected. If you simply instantiated a text renderer directly when you wanted to display arbitrary text, you need to make changes to many classes throughout your project instead of in one place separated from the rest of your application: the theme.</p>
+<p>Put another way, you wouldn't want to do something like this when you want to add a label to a form item:</p>
+<pre class="code"><code>var label:TextFieldTextRenderer = new TextFieldTextRenderer();
+label.text = &quot;Email Address:&quot;;
+this.addChild( label );</code></pre>
+<p>Instead, you should create a <code>Label</code> component:</p>
+<pre class="code"><code>var label:Label = new Label();
+label.text = &quot;Email Address:&quot;;
+this.addChild( label );</code></pre>
+<p>The choice of a text renderer can be left to your theme instead of cluttering up the rest of the application, and text styles may be customized appropriately. For complete details about how to set properties on a <code>Label</code> component in your theme, see <a href="label.html">How to use the Feathers <code>Label</code> component</a>.</p>
+<h2 id="bitmapfonttextrenderer"><code>BitmapFontTextRenderer</code></h2>
+<p><a href="http://wiki.starling-framework.org/manual/displaying_text#bitmap_fonts">Bitmap fonts</a> separate each character into sub-textures inside an atlas. These sub-textures are displayed as images placed next to each other to form words and paragraphs. If the text has a particularly stylized appearance, such as gradients and outlines, bitmap fonts provide the best performance because the styles can be calculated at design time rather than runtime.</p>
+<p>Bitmap fonts are often great for games in situations when you need to display a limited amount of text around the edges of the screen. Values that change often, such as score, ammo, health, etc. can quickly swap out characters without uploading new textures to the GPU.</p>
+<p>Bitmap fonts can sometimes be useful for longer passages of text (assuming that you need a uniform font style throughout the whole passage) because each character is a separate sub-texture and can be reused without requiring more memory on the GPU. However, since each new character is a new image to render on Starling's display list, the transformation calculations for all of those separate display objects may eventually overwhelm the CPU as the number of characters increases. It may require testing to determine how many characters a particular device's CPU can handle at once.</p>
+<p>While the English language has only 26 letters in the alphabet (in addition to any punctuation and other supporting characters that you might need), some languages require many hundreds of characters. A texture that contains all of those characters may be impossible to use with bitmap fonts because it hits texture memory limits imposed by the Flash runtime or the GPU. In these situations, you may have no choice but to use device fonts.</p>
+<p>Bitmap fonts may be scaled, but because they use bitmaps, only scaling down is recommended. Even then, you may lose out on text hinting that would make vector fonts more readable at smaller sizes. It's common to include separate font sizes as separate textures for bitmap fonts to achieve the best looking results, and that can require a lot of memory.</p>
+<p><code>BitmapFontTextRenderer</code> does not support multiple font styles. A <code>BitmapFontTextRenderer</code> must use a single bitmap font to render its entire text.</p>
+<h3 id="using-bitmapfonttextrenderer">Using <code>BitmapFontTextRenderer</code></h3>
+<p>To display text with bitmap fonts, use the <a href="../api-reference/feathers/controls/text/BitmapFontTextRenderer.html"><code>BitmapFontTextRenderer</code></a> class.</p>
+<pre class="code"><code>var textRenderer:BitmapFontTextRenderer = new BitmapFontTextRenderer();
+textRenderer.text = &quot;I am the very model of a modern Major-General&quot;;</code></pre>
+<p>Font styles may be customized by passing a <a href="../api-reference/feathers/text/BitmapFontTextFormat.html"><code>BitmapFontTextFormat</code></a> instance to the <a href="../api-reference/feathers/controls/text/BitmapFontTextRenderer.html#textFormat"><code>textFormat</code></a> property. The first parameter of the constructor accepts either name of a font registered with <a href="http://doc.starling-framework.org/core/starling/text/TextField.html#registerBitmapFont()"><code>TextField.registerBitmapFont()</code></a> or any <a href="http://doc.starling-framework.org/starling/text/core/BitmapFont.html"><code>BitmapFont</code></a> instance, regardless of whether it has been registered or not. Additionally, you may specify the font size (or set it to <code>NaN</code> to use the original font size) and the color of the text. The text color is applied using Starling's tinting capabilities. Finally, you may specify the alignment of the text as the final argument to the constructor.</p>
+<pre class="code"><code>textRenderer.textFormat = new BitmapFontTextFormat( &quot;FontName&quot;, 14, 0xcccccc, TextFormatAlign.CENTER );</code></pre>
+<p>To use <a href="../api-reference/feathers/controls/text/BitmapFontTextRenderer.html#wordWrap"><code>wordWrap</code></a>, set it to <code>true</code> and give the <code>BitmapFontTextRenderer</code> (or a <code>Label</code> that is using a <code>BitmapFontTextRenderer</code>) a <code>width</code> or <code>maxWidth</code> value. You can also add manual line breaks using the <code>\n</code> character.</p>
+<pre class="code"><code>textRenderer.width = 100;
+textRenderer.wordWrap = true;</code></pre>
+<p><code>BitmapFontTextRenderer</code> provides a number of other advanced properties that may be customized, but aren't included in this quick introduction. For complete details about available properties, please take a look at the <a href="../api-reference/feathers/controls/text/BitmapFontTextRenderer.html"><code>BitmapFontTextRenderer</code> API reference</a>.</p>
+<h2 id="textfieldtextrenderer"><code>TextFieldTextRenderer</code></h2>
+<p><a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html"><code>flash.text.TextField</code></a> may be used to render device fonts or embedded fonts using a software-based vector renderer. Inside Feathers, this text is drawn to <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/BitmapData.html"><code>BitmapData</code></a> and uploaded as a texture to the GPU. This text renderer may use device fonts (the fonts installed on the user's operating system), and it supports embedded fonts in TTF or OTF formats.</p>
+<p>Since embedded vector fonts require less memory than embedded bitmap fonts, you may still be able to use custom fonts with languages with too many characters for bitmap fonts. However, even when the vector glyphs require too much memory, you can always fall back to using <em>device fonts</em> (the fonts installed on the user's operating system) to draw your text. For some languages, device fonts may be the only option.</p>
+<p>Changing vector-based text on the GPU is slower than with bitmap fonts because the text needs to be redrawn to <code>BitmapData</code> and then it needs to be uploaded to a texture on the GPU. However, once this texture is on the GPU, performance will be very smooth as long as the text doesn't change again. For text that changes often, the texture upload time may become a bottleneck.</p>
+<p>Because each passage of vector text needs to be drawn to <code>BitmapData</code>, each separate renderer requires its own separate texture on the GPU. This results in more <a href="http://wiki.starling-framework.org/manual/performance_optimization#minimize_state_changes">state changes</a> and <a href="faq/draw-calls.html">draw calls</a>, which can create more work for the GPU and affect performance if you have many different instances of <code>TextFieldTextRenderer</code> on screen at the same time.</p>
+<p><a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html"><code>flash.text.TextField</code></a> has some known issues and limitations:</p>
+<ul>
+<li><p><code>TextField</code> may render incorrectly when drawn to <code>BitmapData</code> immediately after its properties have been changed. As a workaround, <code>TextFieldTextRenderer</code> waits one frame before drawing to <code>BitmapData</code> and uploading as a texture when the text or font styles are changed. Often, this delay will not be an issue, but it can be seen if watching closely.</p></li>
+<li><p><code>TextField</code> offers limited support for some languages, including right-to-left and bidirectional languages, and Flash Text Engine is recommended for these languages.</p></li>
+</ul>
+<p><code>TextFieldTextRenderer</code> supports <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html#htmlText">a limited subset of HTML</a> courtesy of <code>flash.text.TextField</code>. This may be used to render richer text with multiple font styles.</p>
+<h3 id="using-textfieldtextrenderer">Using <code>TextFieldTextRenderer</code></h3>
+<p>To render text in software with <code>flash.text.TextField</code> and display a snapshot of it as a texture on the GPU, use the <a href="../api-reference/feathers/controls/text/TextFieldTextRenderer.html"><code>TextFieldTextRenderer</code></a> class.</p>
+<pre class="code"><code>var textRenderer:TextFieldTextRenderer = new TextFieldTextRenderer();
+textRenderer.text = &quot;About binomial theorem I&#39;m teeming with a lot o&#39; news&quot;;</code></pre>
+<p>Font styles may be customized using the native <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html"><code>flash.text.TextFormat</code></a> class. Many of the property names defined by <code>TextField</code> are duplicated on <code>TextFieldTextRenderer</code>, including (but not limited to) <a href="../api-reference/feathers/controls/text/TextFieldTextRenderer.html#textFormat"><code>textFormat</code></a> and <a href="../api-reference/feathers/controls/text/TextFieldTextRenderer.html#embedFonts"><code>embedFonts</code></a>:</p>
+<pre class="code"><code>textRenderer.textFormat = new TextFormat( &quot;Source Sans Pro&quot;, 16, 0xcccccc );
+textRenderer.embedFonts = true;</code></pre>
+<p>To enable word-wrapping, pass in a <code>width</code> or <code>maxWidth</code> value and set <a href="../api-reference/feathers/controls/text/TextFieldTextRenderer.html#wordWrap"><code>wordWrap</code></a> to <code>true</code>.</p>
+<pre class="code"><code>textRenderer.width = 100;
+textRenderer.wordWrap = true;</code></pre>
+<p>To render the <code>text</code> property of the <code>TextFieldTextRenderer</code> using <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html#htmlText">a limited subset of HTML</a>, set the <code>isHTML</code> property to <code>true</code>:</p>
+<pre class="code"><code>textRenderer.text = &quot;&lt;span class=&#39;heading&#39;&gt;hello&lt;/span&gt; world!&quot;;
+textRenderer.isHTML = true;</code></pre>
+<p><code>TextFieldTextRenderer</code> provides a number of other advanced properties that may be customized, but aren't included in this quick introduction. For complete details about available properties, please take a look at the <a href="../api-reference/feathers/controls/text/TextFieldTextRenderer.html"><code>TextFieldTextRenderer</code> API reference</a>.</p>
+<h2 id="textblocktextrenderer"><code>TextBlockTextRenderer</code></h2>
+<p><a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/TextBlock.html"><code>flash.text.engine.TextBlock</code></a> may be used to render device fonts or embedded fonts using a software-based vector renderer. Inside Feathers, this text is drawn to <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/BitmapData.html"><code>BitmapData</code></a> and uploaded as a texture to the GPU. This text renderer may use device fonts (the fonts installed on the user's operating system), and it supports embedded fonts in TTF or OTF formats.</p>
+<p>Since embedded vector fonts require less memory than embedded bitmap fonts, you may still be able to use custom fonts with languages with too many characters for bitmap fonts. However, even when the vector glyphs require too much memory, you can always fall back to using <em>device fonts</em> (the fonts installed on the user's operating system) to draw your text. For some languages, device fonts may be the only option.</p>
+<p>Changing vector-based text on the GPU is slower than with bitmap fonts because the text needs to be redrawn to <code>BitmapData</code> and then it needs to be uploaded to a texture on the GPU. However, once this texture is on the GPU, performance will be very smooth as long as the text doesn't change again. For text that changes often, the texture upload time may become a bottleneck.</p>
+<p>Because each passage of vector text needs to be drawn to <code>BitmapData</code>, each separate renderer requires its own separate texture on the GPU. This results in more <a href="http://wiki.starling-framework.org/manual/performance_optimization#minimize_state_changes">state changes</a> and <a href="faq/draw-calls.html">draw calls</a>, which can create more work for the GPU and affect performance if you have many different instances of <code>TextBlockTextRenderer</code> on screen at the same time.</p>
+<p>Flash Text Engine may render a bit slower than <code>flash.text.TextField</code> sometimes. In general, this performance difference is negligible, and the more advanced capabilities of FTE are often more compelling than a minor risk of reduced performance.</p>
+<p><code>TextBlockTextRenderer</code> optionally supports rich text, but it needs to be constructed manually adding multiple <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/TextElement.html"><code>TextElement</code></a> objects, each with different <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/ElementFormat.html"><code>ElementFormat</code></a> values, to a <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/GroupElement.html"><code>GroupElement</code></a> object. You may pass the <code>GroupElement</code> to the text renderer's <a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html#content"><code>content</code></a> property. <code>TextBlockTextRenderer</code> does not support the simple subset of HTML that <code>TextFieldTextRenderer</code> can display.</p>
+<h3 id="using-textblocktextrenderer">Using <code>TextBlockTextRenderer</code></h3>
+<p>To render text in software with <code>flash.text.engine.TextBlock</code> and display it as a texture on the GPU, use the <a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html"><code>TextBlockTextRenderer</code></a> class.</p>
+<pre class="code"><code>var textRenderer:TextBlockTextRenderer = new TextBlockTextRenderer();
+textRenderer.text = &quot;I understand equations, both the simple and quadratical&quot;;</code></pre>
+<p>Many font styles may be customized using the native <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/ElementFormat.html"><code>flash.text.engine.ElementFormat</code></a> class. Pass an instance of <code>ElementFormat</code> to the <a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html"><code>elementFormat</code></a> property:</p>
+<pre class="code"><code>var fontDescription:FontDescription = new FontDescription( &quot;Source Sans Pro&quot;, FontWeight.NORMAL, FontPosture.NORMAL, FontLookup.EMBEDDED_CFF, RenderingMode.CFF, CFFHinting.NONE );
+textRenderer.elementFormat = new ElementFormat( fontDescription, 16, 0xcccccc );</code></pre>
+<p>The first parameter to the <code>ElementFormat</code> constructor is a <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/FontDescription.html"><code>FontDescription</code></a> object. This class is provided by Flash Text Engine to handle font lookup, including name, weight, posture, whether the font is embedded or not, and how the font is rendered.</p>
+<p>Text alignment is not included in the <code>FontDescription</code> or the <code>ElementFormat</code>. Instead, set the <a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html#textAlign"><code>textAlign</code></a> property:</p>
+<pre class="code"><code>textRenderer.textAlign = TextBlockTextRenderer.TEXT_ALIGN_CENTER;</code></pre>
+<p>The <code>TextBlockTextRenderer</code> defines <a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html#TEXT_ALIGN_CENTER"><code>TEXT_ALIGN_CENTER</code></a> and some other constants that the <code>textAlign</code> property accepts.</p>
+<p>To enable word-wrapping, pass in a <code>width</code> or <code>maxWidth</code> value and set <a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html#wordWrap"><code>wordWrap</code></a> to <code>true</code>.</p>
+<pre class="code"><code>textRenderer.width = 100;
+textRenderer.wordWrap = true;</code></pre>
+<p><code>TextBlockTextRenderer</code> provides a number of other advanced properties that may be customized, but aren't included in this quick introduction. For complete details about available properties, please take a look at the <a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html"><code>TextBlockTextRenderer</code> API reference</a>.</p>
+<h2 id="custom-text-renderers">Custom Text Renderers</h2>
+<p>If you'd like to use a different approach to rendering text, you may implement the <a href="../api-reference/feathers/core/ITextRenderer.html"><code>ITextRenderer</code></a> interface. This interface provides a simple API for passing a string to a text renderer to display and measuring the text. One example of a custom text renderer might be one that uses <a href="http://www.adobe.com/devnet/tlf.html">Text Layout Framework (TLF)</a> to provide a number of advanced capabilities.</p>
+<p>Unless your custom renderer is capable of drawing directly to the GPU, chances are that you will need to implement some form of texture snapshots, similar to the <code>TextFieldTextRenderer</code> or <code>TextBlockTextRenderer</code>. Since Feathers is open source, feel free to look through the source code for one of these text renderer classes for inspiration.</p>
+<h2 id="alternatives">Alternatives</h2>
+<p>We have some other options for displaying text, including some options included in Feathers and some custom text renderers developed by the community. As with the core text renderers detailed above, these alternatives have their own advantages and disadvantages.</p>
+<h3 id="feathers-scrolltext-component">Feathers <code>ScrollText</code> Component</h3>
+<p>Sometimes, very long text may be too large for text renderers like <code>TextFieldTextRenderer</code> and <code>TextBlockTextRenderer</code> to display because the total width or height is so large that there isn't enough memory on the GPU to store the required textures. However, you may still want to use vector-based fonts in a <code>flash.text.TextField</code>.</p>
+<p>In this case, you might consider using the <a href="scroll-text.html"><code>ScrollText</code></a> component instead. <code>ScrollText</code> displays a native <code>flash.text.TextField</code> overlay on the native stage above Starling and Stage 3D. Rather than being converted into a texture on the GPU, this text is rendered in software and displayed above Stage 3D on the classic display list. It may be constrained to a rectangle in Starling coordinates, clipped, and scrolled.</p>
+<p>There are some disadvantages, though. Because it is drawn entirely by the software renderer, it may scroll slowly on mobile devices with high screen resolutions because the CPU may not be able to keep up with rendering so much text in software. Moreover, you will not be able to display Starling content above the <code>ScrollText</code> component. <code>ScrollText</code> is not rendered by the GPU, so it is completely outside of Starling and Stage 3D. <code>ScrollText</code> is always above Starling, and nothing inside Starling can appear on top. If you want to display something above <code>ScrollText</code>, it will also need to be on the native display list. This content will not be GPU accelerated, and it may perform poorly.</p>
+<h3 id="firetype">firetype</h3>
+<p><a href="http://www.max-did-it.com/index.php/projects/firetype/">firetype</a> is a third-party library that renders text on the GPU using polygons instead of textures. Text displayed with firetype is resolution independent and uses less CPU than software rendering. This library includes support for Starling.</p>
+<h3 id="distance-field-fonts">Distance Field Fonts</h3>
+<p><a href="http://wiki.starling-framework.org/extensions/distancefieldfont">DistanceFieldFont</a> is a third-party Starling extension that implements distance fields for bitmap fonts. Distance fields allow bitmap fonts to use less texture memory and scale up much more smoothly than standard bitmap fonts. This extension includes a Feathers text renderer.</p>
+<h2 id="draw-calls">Draw Calls</h2>
+<p>Please see the <a href="faq/draw-calls.html">FAQ: Draw Calls and Feathers Text</a> article for a detailed explanation about how text in Starling and Feathers (and text on the GPU, in general) affects draw calls.</p>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="../api-reference/feathers/core/text/ITextRenderer.html"><code>feathers.core.ITextRenderer</code> API Documentation</a></p></li>
+<li><p><a href="../api-reference/feathers/controls/text/BitmapFontTextRenderer.html"><code>feathers.controls.text.BitmapFontTextRenderer</code> API Documentation</a></p></li>
+<li><p><a href="../api-reference/feathers/controls/text/TextFieldTextRenderer.html"><code>feathers.controls.text.TextFieldTextRenderer</code> API Documentation</a></p></li>
+<li><p><a href="../api-reference/feathers/controls/text/TextBlockTextRenderer.html"><code>feathers.controls.text.TextBlockTextRenderer</code> API Documentation</a></p></li>
+<li><p><a href="label.html">How to use the Feathers <code>Label</code> component</a></p></li>
+<li><p><a href="text-editors.html">Introduction to Feathers Text Editors</a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

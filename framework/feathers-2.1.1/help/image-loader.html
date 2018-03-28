@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>How to use the Feathers Image Loader component - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="how-to-use-the-feathers-imageloader-component">How to use the Feathers <code>ImageLoader</code> component</h1>
+<p>The <a href="../api-reference/feathers/controls/ImageLoader.html"><code>ImageLoader</code></a> class wraps <a href="http://doc.starling-framework.org/core/starling/display/Image.html"><code>starling.display.Image</code></a> inside a Feathers component to add additional features. For instance, you can easily load an image from a URL and automatically convert it to a texture that is fully managed by the <code>ImageLoader</code>. The texture will be disposed when the <code>ImageLoader</code> is disposed. A number of other useful properties have been added to <code>ImageLoader</code>. See below for more details.</p>
+<h2 id="the-basics">The Basics</h2>
+<p>First, let's create an <code>ImageLoader</code> control, pass in a texture to display, and add it to the display list:</p>
+<pre class="code"><code>var loader:ImageLoader = new ImageLoader();
+loader.source = texture;
+this.addChild( loader );</code></pre>
+<p>Alternatively, you can pass a URL to the <a href="../api-reference/feathers/controls/ImageLoader.html#source"><code>source</code></a> property to load an external image:</p>
+<pre class="code"><code>loader.source = &quot;http://www.example.com/image.png&quot;;</code></pre>
+<p>The URL may point to any image file that may be loaded by <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/Loader.html"><code>flash.display.Loader</code></a> to create a <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/BitmapData.html"><code>flash.display.BitmapData</code></a> object. The loaded image will be converted to a <a href="http://doc.starling-framework.org/core/starling/textures/Texture.html"><code>starling.textures.Texture</code></a>.</p>
+<aside class="warn">
+At this time, ATF files cannot be loaded by <code>ImageLoader</code> using a URL.
+</aside>
+<h3 id="events">Events</h3>
+<p>You can listen for <a href="../api-reference/feathers/controls/ImageLoader.html#event:complete"><code>Event.COMPLETE</code></a> to know when the image is fully loaded:</p>
+<pre class="code"><code>loader.addEventListener( Event.COMPLETE, loader_completeHandler );</code></pre>
+<p>The listener might look like this:</p>
+<pre class="code"><code>function loader_completeHandler( event:Event ):void
+{
+    // image loaded and texture ready
+}</code></pre>
+<p>You can also listen for errors to know if the <code>ImageLoader</code> is unable to load the texture:</p>
+<pre class="code"><code>loader.addEventListener( FeathersEventType.ERROR, loader_errorHandler );</code></pre>
+<p>The listener for <a href="../api-reference/feathers/events/FeathersEventType.html#ERROR"><code>FeathersEventType.ERROR</code></a> might look like this:</p>
+<pre class="code"><code>function loader_errorHandler( event:Event, data:ErrorEvent ):void
+{
+    // loader error
+}</code></pre>
+<p>The <code>data</code> parameter in the function signature is optional, as always. It is a <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/events/ErrorEvent.html"><code>flash.events.ErrorEvent</code></a> that is dispatched by the internal <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/Loader.html"><code>flash.display.Loader</code></a> used internally by the <code>ImageLoader</code>. It may be of type <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/events/IOErrorEvent.html#IO_ERROR"><code>IOErrorEvent.IO_ERROR</code></a> or of type <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/events/SecurityErrorEvent.html#SECURITY_ERROR"><code>SecurityErrorEvent.SECURITY_ERROR</code></a>.</p>
+<h3 id="other-properties">Other Properties</h3>
+<p>You can snap the position of an <code>ImageLoader</code> to the nearest whole pixel using the <a href="../api-reference/feathers/controls/ImageLoader.html#snapToPixels"><code>snapToPixels</code></a> property:</p>
+<pre class="code"><code>loader.snapToPixels = true;</code></pre>
+<p>Pixel snapping is most useful for icons where crisp edges are especially important.</p>
+<p>When images are loaded in a component like a <a href="list.html"><code>List</code></a>, it's often more desirable to avoid creating new textures on the GPU while the list is scrolling. Since texture uploads are expensive, this keeps the list feeling smooth and responsive.</p>
+<pre class="code"><code>loader.delayTextureCreation = true;</code></pre>
+<p>Set the <a href="../api-reference/feathers/controls/ImageLoader.html#delayTextureCreation"><code>delayTextureCreation</code></a> property to <code>true</code> when the container starts scrolling and set it back to <code>false</code> after scrolling finishes. While this property is <code>true</code>, the image may load from a URL, but the <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/display/BitmapData.html"><code>BitmapData</code></a> will be kept in memory without being converted to a texture on the GPU. Once the property is set back to <code>false</code>, the texture will be created immediately.</p>
+<p>If desired, we can set the <a href="../api-reference/feathers/controls/ImageLoader.html#textureQueueDuration"><code>textureQueueDuration</code></a> property to a specific number of seconds. When <code>delayTextureCreation</code> is <code>true</code>, the loaded image will be converted to a <code>Texture</code> after a short delay instead of waiting for <code>delayTextureCreation</code> to be set back to <code>false</code>.</p>
+<p>When you resize a regular <a href="http://doc.starling-framework.org/core/starling/display/Image.html"><code>starling.display.Image</code></a>, it may distort. <code>ImageLoader</code> allows you control whether the image maintains its aspect ratio within the dimensions of the <code>ImageLoader</code>:</p>
+<pre class="code"><code>loader.maintainAspectRatio = true;</code></pre>
+<p>When the <a href="../api-reference/feathers/controls/ImageLoader.html#maintainAspectRatio"><code>maintainAspectRatio</code></a> property is <code>true</code>, the image may be letter-boxed inside the <code>ImageLoader</code>, adding transparent edges on the top and bottom or on the left and right.</p>
+<p>You can use the <a href="../api-reference/feathers/controls/ImageLoader.html#isLoaded"><code>isLoaded</code></a> getter to know if a texture is fully loaded (in addition to listening for <a href="../api-reference/feathers/controls/ImageLoader.html#event:complete"><code>Event.COMPLETE</code></a>, mentioned above):</p>
+<pre class="code"><code>if( loader.isLoaded )
+{
+    // ready
+}
+else
+{
+    // not loaded
+}</code></pre>
+<p>You can scale the original dimensions of the loaded texture:</p>
+<pre class="code"><code>loader.textureScale = 0.5;</code></pre>
+<p>This value is mainly used when the <code>ImageLoader</code> needs to resize after loading a new <a href="../api-reference/feathers/controls/ImageLoader.html#source"><code>source</code></a>. The original width and height of the loaded texture are multiplied by the <a href="../api-reference/feathers/controls/ImageLoader.html#textureScale"><code>textureScale</code></a> and that's the width and height of the <code>ImageLoader</code>.</p>
+<p>Finally, just like <code>starling.display.Image</code>, <code>ImageLoader</code> allows you to customize the <a href="../api-reference/feathers/controls/ImageLoader.html#color"><code>color</code></a> and <a href="../api-reference/feathers/controls/ImageLoader.html#smoothing"><code>smoothing</code></a> properties:</p>
+<pre class="code"><code>loader.color = 0xff0000;
+loader.smoothing = TextureSmoothing.NONE;</code></pre>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><a href="../api-reference/feathers/controls/ImageLoader.html"><code>feathers.controls.ImageLoader</code> API Documentation</a></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="pandoc">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<meta name="author" content="Josh Tynjala">
+	<title>Creating custom legacy Feathers 1.x themes - Feathers 2.1.1 Help</title>
+	<style type="text/css">code{white-space: pre;}</style>
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link rel="stylesheet" href="css/feathers-help.css">
+</head>
+<body>
+<header>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+</div>
+</header>
+<article>
+<h1 id="creating-custom-legacy-feathers-1.x-themes">Creating custom legacy Feathers 1.x themes</h1>
+<p>Let's learn a bit about how Feathers <a href="themes.html">themes</a> work behind the scenes. You may want to download one of the example themes that are available as part of the <a href="https://github.com/joshtynjala/feathers-examples">feathers-examples project on Github</a> to see how the code for a theme might look.</p>
+<p>If you simply want to use a theme rather than create a new one from scratch, please take a look at <a href="themes.html">Introduction to Feathers Themes</a>. You'll probably also be interested in <a href="extending-themes.html">Extending Feathers Themes</a> to learn how to use an existing theme and add some custom alternate component styles.</p>
+<aside class="warn">
+This tutorial covers the old theme architecture in Feathers 1.0. It has not yet been updated for Feathers 2.0. However, <a href="extending-themes.html">Extending Feathers Themes</a> should provide enough information to create a custom theme.
+</aside>
+<h2 id="the-basics-of-themes">The Basics of Themes</h2>
+<p>A theme should extend the <code>DisplayListWatcher</code> class. <code>DisplayListWatcher</code> is a class provided by Feathers that can listen for display list events and take action based on them. <code>Event.ADDED</code>, in particular, is a useful bubbling event that the <code>DisplayListWatcher</code> can use to know when absolutely anything is added to the display list. When the <code>DisplayListWatcher</code> encounters a Feathers component datatype that it recognizes (such as <code>Button</code>, <code>Slider</code> or <code>ToggleSwitch</code>), it can apply an appropriate skin to the component.</p>
+<p><code>DisplayListWatcher</code> provides a method named <code>setInitializerForClass()</code> that lets you call an <em>initializer</em> function when a display object of that type is added to the stage. This function is where you apply your skins to the component. Below, we register an initializer function for <code>Button</code> controls:</p>
+<pre class="code"><code>setInitializerForClass( Button, buttonInitializer );</code></pre>
+<p>Then here's the initializer function itself:</p>
+<pre class="code"><code>function buttonInitializer( button:Button ):void
+{
+    // apply skins to the button here
+    // skins, icons, text formats, etc.
+}</code></pre>
+<p>Simply add a new initializer for every type of component that you need in your application.</p>
+<p>Next, let's look at how you can skin sub-components. Child components may have different skins than the more standard version of the same component. For instance, Button is used as a sub-component for many other components, including <code>ToggleSwitch</code>, <code>Slider</code>, and many others.</p>
+<h2 id="component-names">Component Names</h2>
+<p>Every component has a <em>name list</em> that provides extra metadata about the component. By default, most components don't have any names, but sub-components and components that need special skins that are different from the default are given names to help differentiate them for skinning (and, possibly, other add-on capabilities). A component can have many names, and many components can share the same name. This feature is strongly inspired by CSS classes.</p>
+<p>If Feathers themes had a CSS-like dialect, we might create a declaration like this to skin the thumb child component in a <code>ToggleSwitch</code>:</p>
+<pre class="code"><code>Button.feathers-toggle-switch-thumb {}</code></pre>
+<p>In ActionScript, we can pass in a component <em>name</em> to <code>setInitializerForClass()</code> as the third argument to make the initializer target any component with the specified class <strong>and</strong> the specified name. We'll pass in the name <code>&quot;feathers-toggle-switch-thumb&quot;</code>, which is defined in the constant <code>ToggleSwitch.DEFAULT_CHILD_NAME_THUMB</code>:</p>
+<pre class="code"><code>setInitializerForClass( Button, buttonInitializer );
+setInitializerForClass( Button, toggleSwitchThumbInitializer, ToggleSwitch.DEFAULT_CHILD_NAME_THUMB );</code></pre>
+<p>Here are our two initializer functions:</p>
+<pre class="code"><code>function buttonInitializer( button:Button ):void
+{
+    // apply skins to a regular button here
+}
+ 
+function toggleSwitchThumbInitializer( button:Button ):void
+{
+    // apply skins to a toggle switch thumb here
+}</code></pre>
+<p>Separate initializer functions can be defined for different component names. The theme will pick the first name that is matched and no others. It's possible to use multiple names, as we'll see later, but a theme will pass a component to a single initializer only. As you can see in the code above, you can create an initializer that doesn't target any name. If a new component is added, and it doesn't have a name associated with another initializer, then it will default to using the initializer that targets no name.</p>
+<p>Usually, names are declared for sub-components (such as the <code>ToggleSwitch</code> or <code>Slider</code> thumbs), but a theme may offer some names as static constants to offer different styles of the same component. For instance, you might want to display some buttons with a realistic 3Dish style and others in a more simplified flat style. Or maybe you want back buttons to have an arrow-like shape to literally point backwards. If variations are available, you can simply add those names to any component in your application and the theme will take care of the rest.</p>
+<p>Names only work when added to a component <em>before</em> it is added to the stage for the first time. You <strong>cannot</strong> change names later to give a component a different skin.</p>
+<h3 id="multiple-component-names">Multiple Component Names</h3>
+<p>In most cases, a component will have only a single name. <code>setInitializerForClass()</code> accepts only one name, and the theme will only pass a component to a single initializer. However, that doesn't mean that it's impossible to have components with multiple names. Inside that single initializer, you can check for additional names by calling <code>nameList.contains()</code>:</p>
+<pre class="code"><code>private function buttonInitializer( button ):void
+{
+    // size 
+    if( button.nameList.contains( &quot;my-small-button&quot; ) )
+    {
+         // set styles for a small button
+    }
+    else
+    {
+         // set styles for a normally sized button
+    }
+ 
+    // style
+    if( button.nameList.contains( Button.ALTERNATE_NAME_CALL_TO_ACTION_BUTTON ) )
+    {
+        // set skins for a call to action button
+    }
+    else
+    {
+        // set skins for a normally styled button
+    }
+}</code></pre>
+<h2 id="alternate-skins">Alternate Skins</h2>
+<p>Some components may define more than one skin in the core framework. These are variations of the same component that are expected to exist across any Feathers theme. Theme authors should provide these alternate skins for maximum flexibility. An alternate skin is defined as a public static constant on a related class, and it is expected to be passed to a component's <code>nameList</code>, much like a name is added to a sub-component.</p>
+<p>To apply an alternate skin in your theme, simply create an initializer for that name:</p>
+<pre class="code"><code>setInitializerForClass( GroupedList, buttonInitializer, GroupedList.ALTERNATE_NAME_INSET_GROUPED_LIST );</code></pre>
+<p>In the code above, an initializer is defined for an alternate &quot;inset&quot; skin supported by <a href="grouped-list.html">GroupedList</a>. As you can see, it's exactly the same as if you were providing a skin for a sub-component like a slider thumb or something like that.</p>
+<p>If you choose not to provide an alternate skin, the regular skin will be applied to any component that would prefer to use the alternate skin. This will happen automatically, and you do not need any extra code to ensure that your theme falls back to the regular skin.</p>
+<h2 id="standard-icons">Standard Icons</h2>
+<p>You should provide textures for the <code>StandardIcons</code> class. This class may be used by Feathers developers for commonly-used UI icons. For example, <code>StandardIcons.listDrillDownAccessoryTexture</code> typically provides an arrow pointing to the right to indicate that you can select a list item to drill down into more detailed data. This icon may be used with a list item's <code>accessoryTextureField</code> or <code>accessoryTextureFunction</code>.</p>
+<pre class="code"><code>StandardIcons.listDrillDownAccessoryTexture = atlas.getTexture(&quot;list-drill-down-accessory&quot;);</code></pre>
+<h2 id="related-links">Related Links</h2>
+<ul>
+<li><p><a href="themes.html">Introduction to Feathers Themes</a></p></li>
+<li><p><a href="extending-themes-v1.html">Extending legacy Feathers 1.x Themes</a></p></li>
+</ul>
+</article>
+<footer>
+<div class="content">
+<nav><a href="index.html">Feathers 2.1.1 Help</a></nav>
+<p class="copyright">Copyright 2012-2015 Josh Tynjala. All rights reserved.</p>
+</div>
+</footer>
+</body>
+</html>
