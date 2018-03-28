@@ -11,7 +11,6 @@ public class Singleton {
     private static var _instance:Singleton;
     private var loadCallBack:Function;
 
-    public var assetFile:String;
     public var loaded:Number;
     public var assetManager:AssetManager;
 
@@ -39,7 +38,6 @@ public class Singleton {
         assetManager = new AssetManager();
         assetManager.enqueue(e.target);
         assetManager.loadQueue(loadCallBack);
-        assetFile = (e.target as File).nativePath;
     }
 }
 }
