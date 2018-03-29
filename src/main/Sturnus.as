@@ -37,8 +37,8 @@ public class Sturnus extends Sprite
         h = e.height;
 
         if(tm){
-            tm.width = 0.2 * w;
-            tm.height = 0.2 * h;
+            tm.width = 0.3 * w;
+            tm.height = 0.3 * h;
         }
     }
 
@@ -51,7 +51,7 @@ public class Sturnus extends Sprite
     {
         if (loaded >= 1)
         {
-            tm = new Scale9Image(new Scale9Textures(Singleton.instance.assetManager.getTexture("rainbow_ring_01"), new Rectangle(65,65,5,5))) as Sprite;
+            tm = new Scale9Image(new Scale9Textures(Singleton.instance.assetManager.getTexture("ui_base"), new Rectangle(6,6,4,4))) as Sprite;
             addChild(tm);
         }
     }
