@@ -2,7 +2,7 @@
 <module type="Flex" version="4">
   <component name="FlexBuildConfigurationManager" active="Sturnus">
     <configurations>
-      <configuration name="Sturnus" target-platform="Desktop" pure-as="true" main-class="main.Main" output-file="Main.swf" output-folder="$MODULE_DIR$/out/production/Sturnus">
+      <configuration name="Sturnus" target-platform="Desktop" pure-as="true" main-class="main.Main" output-file="Sturnus.swf" output-folder="$MODULE_DIR$/out/production/Sturnus">
         <dependencies target-player="19.0">
           <entries>
             <entry library-id="656ffc0c-a372-4552-9ef1-37e815040d8a">
@@ -18,7 +18,7 @@
           <sdk name="air19_sdk_mac" />
         </dependencies>
         <compiler-options />
-        <packaging-air-desktop use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/Main-app.xml" package-file-name="Main">
+        <packaging-air-desktop use-generated-descriptor="false" custom-descriptor-path="$MODULE_DIR$/Main-app.xml" package-file-name="Sturnus">
           <files-to-package>
             <FilePathAndPathInPackage file-path="$MODULE_DIR$/src/assets" path-in-package="assets" />
           </files-to-package>
