@@ -1,1 +1,1 @@
-Ultimate Starling
+Soviet Version of Starling
